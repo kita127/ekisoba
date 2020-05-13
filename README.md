@@ -8,7 +8,9 @@ sample.c
 extern int external_var;
 
 char g_char_var;
+int g_int_var;
 int g_int_var2 = 100;
+int (*func_p)(int a, int b);
 
 int sum_func(int a, int b) {
   int res;
@@ -42,6 +44,28 @@ $cat sample.c | ekisoba
                     "name":"g_int_var2",
                     "type":[ "int" ]
                     "value":"100"
+                }
+            },
+            {
+                "variableDefinition":{
+                    "name":"func_p",
+                    "type":[
+                        "*",
+                        {
+                            "args":[
+                                {
+                                    "name":"a",
+                                    "type":[ "int" ]
+                                },
+                                {
+                                    "name":"b",
+                                    "type":[ "int" ]
+                                }
+                            ]
+                        },
+                        "int"
+                    ],
+                    "value":null
                 }
             },
             {
