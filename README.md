@@ -1,5 +1,8 @@
 # Ekisoba
-Ekisoba is easy C langage analyzer
+A tool which translates C source to AST.
+support json.
+
+You can also use it as a library.
 
 ## Usage
 
