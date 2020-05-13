@@ -2,9 +2,9 @@ name:                ekisoba
 version:             0.1.0.0
 github:              "githubuser/ekisoba"
 license:             BSD3
-author:              "Author name here"
+author:              "kitada"
 maintainer:          "example@example.com"
-copyright:           "2020 Author name here"
+copyright:           "2020 kitada"
 
 extra-source-files:
 - README.md
@@ -35,6 +35,7 @@ executables:
     - -with-rtsopts=-N
     dependencies:
     - ekisoba
+    - language-c
 
 tests:
   ekisoba-test:

@@ -4,16 +4,16 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 3e3c357be2e9481e75e1d6f0027ff4a715eac0ceab33066e61ca4c3216a09128
+-- hash: 080b7c0728d21f60ea9042b62ae68f7b87fc9af9d9cacf04594f77df075b88b9
 
 name:           ekisoba
 version:        0.1.0.0
 description:    Please see the README on GitHub at <https://github.com/githubuser/ekisoba#readme>
 homepage:       https://github.com/githubuser/ekisoba#readme
 bug-reports:    https://github.com/githubuser/ekisoba/issues
-author:         Author name here
+author:         kitada
 maintainer:     example@example.com
-copyright:      2020 Author name here
+copyright:      2020 kitada
 license:        BSD3
 license-file:   LICENSE
 build-type:     Simple
@@ -46,6 +46,7 @@ executable ekisoba-exe
   build-depends:
       base >=4.7 && <5
     , ekisoba
+    , language-c
   default-language: Haskell2010
 
 test-suite ekisoba-test
