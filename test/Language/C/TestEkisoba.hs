@@ -1,5 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes       #-}
+import qualified Data.Aeson                  as Aes
+import qualified Data.Aeson.Encode.Pretty    as AesP
+import qualified Data.Aeson.TH               as TH
 import qualified Data.Text                   as T
 import qualified Language.C.Data.InputStream as IS
 import qualified Language.C.Data.Position    as Pos
@@ -9,9 +12,6 @@ import qualified Language.C.Syntax.AST       as AST
 import qualified System.IO                   as SIO
 import           Test.HUnit
 import           Text.RawString.QQ
-import qualified Data.Aeson    as Aes
-import qualified Data.Aeson.TH as TH
-import qualified Data.Aeson.Encode.Pretty as AesP
 
 
 main :: IO ()
