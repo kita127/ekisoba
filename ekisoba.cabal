@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 41bb5edbb28b876c46302f5f1361438ef3d0d627cce36aa7a8ccd38c504f5751
+-- hash: 12d1fd69415ba888118c6468b58968d4d5bfbe958ad0df6bb28d9befee0a6fe8
 
 name:           ekisoba
 version:        0.1.0.0
@@ -28,7 +28,7 @@ source-repository head
 library
   exposed-modules:
       Language.C.Ekisoba
-      Language.C.Ekisoba.Ast
+      Language.C.Ekisoba.AST
       Lib
   other-modules:
       Paths_ekisoba

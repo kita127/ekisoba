@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
-module Language.C.Ekisoba.Ast ( Object(..) ) where
+module Language.C.Ekisoba.AST ( Object(..) ) where
 
 import qualified Data.Text as T
 
