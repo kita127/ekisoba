@@ -1,10 +1,10 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.31.2.
+-- This file has been generated from package.yaml by hpack version 0.33.0.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 080b7c0728d21f60ea9042b62ae68f7b87fc9af9d9cacf04594f77df075b88b9
+-- hash: 74c158189c592387eefc08128b96de9ff017c3759484c286de3b14864fe3da66
 
 name:           ekisoba
 version:        0.1.0.0
@@ -27,6 +27,7 @@ source-repository head
 
 library
   exposed-modules:
+      Language.C.Ekisoba
       Lib
   other-modules:
       Paths_ekisoba
