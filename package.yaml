@@ -24,6 +24,10 @@ dependencies:
 
 library:
   source-dirs: src
+  dependencies:
+  - language-c
+  - text
+  - aeson
 
 executables:
   ekisoba-exe:
@@ -36,14 +40,24 @@ executables:
     dependencies:
     - ekisoba
     - language-c
+    - aeson
+    - aeson-pretty
+    - bytestring
 
 tests:
   ekisoba-test:
-    main:                Spec.hs
-    source-dirs:         test
+    main:                TestEkisoba.hs
+    source-dirs:         test/Language/C
     ghc-options:
     - -threaded
     - -rtsopts
     - -with-rtsopts=-N
     dependencies:
     - ekisoba
+    - HUnit
+    - raw-strings-qq
+    - text
+    - temporary
+    - language-c
+    - aeson
+    - aeson-pretty
