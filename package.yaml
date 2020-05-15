@@ -53,3 +53,5 @@ tests:
     - HUnit
     - raw-strings-qq
     - text
+    - temporary
+    - language-c
