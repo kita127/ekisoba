@@ -27,6 +27,7 @@ library:
   dependencies:
   - language-c
   - text
+  - aeson
 
 executables:
   ekisoba-exe:
@@ -39,6 +40,9 @@ executables:
     dependencies:
     - ekisoba
     - language-c
+    - aeson
+    - aeson-pretty
+    - bytestring
 
 tests:
   ekisoba-test:
@@ -55,3 +59,5 @@ tests:
     - text
     - temporary
     - language-c
+    - aeson
+    - aeson-pretty

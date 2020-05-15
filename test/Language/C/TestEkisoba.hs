@@ -9,6 +9,9 @@ import qualified Language.C.Syntax.AST       as AST
 import qualified System.IO                   as SIO
 import           Test.HUnit
 import           Text.RawString.QQ
+import qualified Data.Aeson    as Aes
+import qualified Data.Aeson.TH as TH
+import qualified Data.Aeson.Encode.Pretty as AesP
 
 
 main :: IO ()
@@ -23,10 +26,18 @@ testSample = TestList
 
 testTranslate :: Test
 testTranslate = TestList
-    [ "testTranslate test 1" ~: (show . cToOriginAst ".") input1 ~?= "hello"
+    [ "testTranslate test 1" ~: (AesP.encodePretty . Eki.translate . cToOriginAst ".") (input !! 0) ~?= (expected !! 0)
     ]
   where
-    input1 = [r|int hoge;|]
+    input = [
+        [r|int hoge;|]
+        ]
+    expected = [
+        [r|{
+    "name": "file name"
+}|]
+        ]
+
 
 cToOriginAst :: FilePath -> IS.InputStream -> AST.CTranslUnit
 cToOriginAst file text = case Pars.parseC text (Pos.initPos file) of
