@@ -26,7 +26,7 @@ testSample = TestList
 
 testTranslate :: Test
 testTranslate = TestList
-    [ "testTranslate test 1" ~: (AesP.encodePretty . Eki.translate . cToOriginAst ".") (input !! 0) ~?= (expected !! 0)
+    [ "testTranslate test 1" ~: (AesP.encodePretty . Eki.translate . cToOriginAst "./hoge.c") (input !! 0) ~?= (expected !! 0)
     ]
   where
     input = [
@@ -34,7 +34,7 @@ testTranslate = TestList
         ]
     expected = [
         [r|{
-    "name": "file name"
+    "name": "./hoge.c"
 }|]
         ]
 

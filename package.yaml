@@ -43,6 +43,7 @@ executables:
     - aeson
     - aeson-pretty
     - bytestring
+    - text
 
 tests:
   ekisoba-test:

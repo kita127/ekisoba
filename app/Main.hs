@@ -16,6 +16,8 @@ main = do
                         ["-I/usr/include/gtk-2.0"]
                         "./examples/sample0.c"
     putStrLn ""
+    print parseRes
+    putStrLn ""
     let transRes = case parseRes of
             Right a -> Eki.translate a
             _       -> error "parse error"
