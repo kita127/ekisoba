@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 12d1fd69415ba888118c6468b58968d4d5bfbe958ad0df6bb28d9befee0a6fe8
+-- hash: fca3fa8e1f8faac1766634f15e83732159fabe4bee7104d6e4d492df3f62af39
 
 name:           ekisoba
 version:        0.1.0.0
@@ -55,13 +55,16 @@ executable ekisoba-exe
 
 test-suite ekisoba-test
   type: exitcode-stdio-1.0
-  main-is: Spec.hs
+  main-is: TestEkisoba.hs
   other-modules:
       Paths_ekisoba
   hs-source-dirs:
-      test
+      test/Language/C
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      base >=4.7 && <5
+      HUnit
+    , base >=4.7 && <5
     , ekisoba
+    , raw-strings-qq
+    , text
   default-language: Haskell2010
