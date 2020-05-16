@@ -122,7 +122,7 @@ extractVarName ::
      , Maybe (AST.CExpression Node.NodeInfo)
      )
   -> T.Text
-extractVarName ((Just x), y, z) = extractVarNameDeclr x
+extractVarName (Just x, y, z) = extractVarNameDeclr x
 extractVarName  _               = undefined
 
 -- | extractVarNameDeclr

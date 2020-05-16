@@ -22,7 +22,7 @@ main = do
 
 testSample :: Test
 testSample = TestList
-    [ "testSample test 1" ~: id "hello" ~?= "hello"
+    [ "testSample test 1" ~: "hello" ~?= "hello"
     ]
 
 testTranslate :: Test

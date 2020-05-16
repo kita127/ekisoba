@@ -22,7 +22,7 @@ data Object = Object {
               } deriving (Eq, Show)
 
 instance Stringble Object where
-    string (Object{name = n, program = p}) = n <> "\n" <> string p
+    string Object{name = n, program = p} = n <> "\n" <> string p
 
 
 newtype Program = Program {statements :: [Statement]} deriving (Eq, Show)
@@ -39,11 +39,11 @@ data Statement = VariableDefinition {
                  deriving (Eq, Show)
 
 instance Stringble Statement where
-    string (VariableDefinition{name = n, typ = ts, value = v}) =
+    string VariableDefinition{name = n, typ = ts, value = v} =
         T.intercalate " " ts <> " " <> n <> toString v <> ";"
       where
-        toString (Just v)  = " = " <> v
-        toString (Nothing) = ""
+        toString (Just v) = " = " <> v
+        toString Nothing  = ""
 
 $(TH.deriveJSON TH.defaultOptions ''Object)
 $(TH.deriveJSON TH.defaultOptions ''Program)
