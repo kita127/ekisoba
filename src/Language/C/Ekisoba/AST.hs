@@ -22,7 +22,7 @@ data Object = Object {
               } deriving (Eq, Show)
 
 instance Stringble Object where
-    string Object{name = n, program = p} = n <> "\n" <> string p
+    string Object{name = n, program = p} = string p
 
 
 newtype Program = Program {statements :: [Statement]} deriving (Eq, Show)

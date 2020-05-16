@@ -37,10 +37,8 @@ testTranslate = TestList
         , [r|int hoge = 123;|]
         ]
     expected = [
-          [r|./hoge.c
-int hoge;|]
-        , [r|./hoge.c
-int hoge = 123;|]
+          [r|int hoge;|]
+        , [r|int hoge = 123;|]
         ]
 
 
