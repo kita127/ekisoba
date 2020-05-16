@@ -7,6 +7,7 @@ import qualified Data.Text                   as T
 import qualified Language.C.Data.InputStream as IS
 import qualified Language.C.Data.Position    as Pos
 import qualified Language.C.Ekisoba          as Eki
+import           Language.C.Ekisoba.AST
 import qualified Language.C.Parser           as Pars
 import qualified Language.C.Syntax.AST       as AST
 import qualified System.IO                   as SIO
@@ -26,27 +27,14 @@ testSample = TestList
 
 testTranslate :: Test
 testTranslate = TestList
-    [ "testTranslate test 1" ~: (AesP.encodePretty . Eki.translate . cToOriginAst "./hoge.c") (input !! 0) ~?= (expected !! 0)
+    [ "testTranslate test 1" ~: (string . Eki.translate . cToOriginAst "./hoge.c") (input !! 0) ~?= (expected !! 0)
     ]
   where
     input = [
         [r|int hoge;|]
         ]
-    expected = [
-        [r|{
-    "file": "./hoge.c"
-    "program":{
-        "statement":[
-            {
-                "variableDefinition":{
-                    "name":"hoge",
-                    "type":["char"],
-                    "value":null
-                }
-            }
-        ]
-    }
-}|]
+    expected = [[r|./hoge.c
+int hoge;|]
         ]
 
 
