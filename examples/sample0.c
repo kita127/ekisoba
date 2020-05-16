@@ -1,1 +1,1 @@
-int hoge;
+int hoge = 123;

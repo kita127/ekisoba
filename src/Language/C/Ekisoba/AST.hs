@@ -40,7 +40,10 @@ data Statement = VariableDefinition {
 
 instance Stringble Statement where
     string (VariableDefinition{name = n, typ = ts, value = v}) =
-        T.intercalate " " ts <> " " <> n <> ";"
+        T.intercalate " " ts <> " " <> n <> toString v <> ";"
+      where
+        toString (Just v)  = " = " <> v
+        toString (Nothing) = ""
 
 $(TH.deriveJSON TH.defaultOptions ''Object)
 $(TH.deriveJSON TH.defaultOptions ''Program)

@@ -27,14 +27,20 @@ testSample = TestList
 
 testTranslate :: Test
 testTranslate = TestList
-    [ "testTranslate test 1" ~: (string . Eki.translate . cToOriginAst "./hoge.c") (input !! 0) ~?= (expected !! 0)
+    [ "testTranslate test 1" ~: helper "./hoge.c" input 0 ~?= (expected !! 0)
+    , "testTranslate test 2" ~: helper "./hoge.c" input 1 ~?= (expected !! 1)
     ]
   where
+    helper path inp n = (string . Eki.translate . cToOriginAst path) (inp !! n)
     input = [
-        [r|int hoge;|]
+          [r|int hoge;|]
+        , [r|int hoge = 123;|]
         ]
-    expected = [[r|./hoge.c
+    expected = [
+          [r|./hoge.c
 int hoge;|]
+        , [r|./hoge.c
+int hoge = 123;|]
         ]
 
 

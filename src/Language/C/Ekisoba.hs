@@ -2,12 +2,13 @@
 {-# LANGUAGE OverloadedStrings     #-}
 module Language.C.Ekisoba ( translate ) where
 
-import qualified Data.Text                as T
-import qualified Language.C.Data.Ident    as ID
-import qualified Language.C.Data.Node     as Node
-import qualified Language.C.Data.Position as Pos
-import qualified Language.C.Ekisoba.AST   as EAST
-import qualified Language.C.Syntax.AST    as AST
+import qualified Data.Text                   as T
+import qualified Language.C.Data.Ident       as ID
+import qualified Language.C.Data.Node        as Node
+import qualified Language.C.Data.Position    as Pos
+import qualified Language.C.Ekisoba.AST      as EAST
+import qualified Language.C.Syntax.AST       as AST
+import qualified Language.C.Syntax.Constants as Const
 
 -- | translate
 --
@@ -58,8 +59,60 @@ extractVarDef xs ys =
     EAST.VariableDefinition {
       EAST.name  = extractVarName $ head ys
     , EAST.typ  = map extractVarType xs
-    , EAST.value = Nothing
+    , EAST.value = extractInitValue $ head ys
     }
+
+-- | extractInitValue
+--
+extractInitValue ::
+     ( Maybe (AST.CDeclarator Node.NodeInfo)
+     , Maybe (AST.CInitializer Node.NodeInfo)
+     , Maybe (AST.CExpression Node.NodeInfo)
+     )
+  -> Maybe T.Text
+extractInitValue (x, Nothing, z) = Nothing
+extractInitValue (x, Just y, z)  = Just $ extractInitializer y
+
+-- | extractInitializer
+--
+extractInitializer :: AST.CInitializer Node.NodeInfo -> T.Text
+extractInitializer (AST.CInitExpr x a ) = extractInitExpression x
+extractInitializer (AST.CInitList x a ) = undefined
+
+-- | extractInitExpression
+--
+extractInitExpression :: AST.CExpression Node.NodeInfo -> T.Text
+extractInitExpression (AST.CComma xs a)              = undefined
+extractInitExpression (AST.CAssign x y z a)          = undefined
+extractInitExpression (AST.CCond x y z a)            = undefined
+extractInitExpression (AST.CBinary x y z a)          = undefined
+extractInitExpression (AST.CCast x y a)              = undefined
+extractInitExpression (AST.CUnary x y a)             = undefined
+extractInitExpression (AST.CSizeofExpr x a)          = undefined
+extractInitExpression (AST.CSizeofType x a)          = undefined
+extractInitExpression (AST.CAlignofExpr x a)         = undefined
+extractInitExpression (AST.CAlignofType x a)         = undefined
+extractInitExpression (AST.CComplexReal x a)         = undefined
+extractInitExpression (AST.CComplexImag x a)         = undefined
+extractInitExpression (AST.CIndex x y a)             = undefined
+extractInitExpression (AST.CCall x ys a)             = undefined
+extractInitExpression (AST.CMember x ident bool a)   = undefined
+extractInitExpression (AST.CVar ident a)             = undefined
+extractInitExpression (AST.CConst x)                 = extractConstant x
+extractInitExpression (AST.CCompoundLit x y a)       = undefined
+extractInitExpression (AST.CGenericSelection x ys a) = undefined
+extractInitExpression (AST.CStatExpr x a)            = undefined
+extractInitExpression (AST.CLabAddrExpr ident a)     = undefined
+extractInitExpression (AST.CBuiltinExpr x)           = undefined
+
+-- | extractConstant
+--
+extractConstant :: AST.CConstant Node.NodeInfo -> T.Text
+extractConstant (AST.CIntConst n a)   = T.pack . show . Const.getCInteger $ n
+extractConstant (AST.CCharConst x a)  = undefined
+extractConstant (AST.CFloatConst x a) = undefined
+extractConstant (AST.CStrConst x a)   = undefined
+
 
 -- | extractVarName
 --
