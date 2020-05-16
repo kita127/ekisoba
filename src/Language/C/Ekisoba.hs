@@ -1,4 +1,5 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE DuplicateRecordFields #-}
+{-# LANGUAGE OverloadedStrings     #-}
 module Language.C.Ekisoba ( translate ) where
 
 import qualified Data.Text                as T
@@ -13,7 +14,7 @@ import qualified Language.C.Syntax.AST    as AST
 translate :: AST.CTranslUnit -> EAST.Object
 translate (AST.CTranslUnit xs nodeInfo) =
     EAST.Object {
-      EAST.objName = extractNodeName nodeInfo
+      EAST.name = extractNodeName nodeInfo
     , EAST.program = extractProgram xs
     }
 
@@ -55,9 +56,9 @@ extractVarDef ::
    -> EAST.Statement
 extractVarDef xs ys =
     EAST.VariableDefinition {
-      EAST.varName  = extractVarName $ head ys
-    , EAST.varType  = map extractVarType xs
-    , EAST.varValue = Nothing
+      EAST.name  = extractVarName $ head ys
+    , EAST.typ  = map extractVarType xs
+    , EAST.value = Nothing
     }
 
 -- | extractVarName

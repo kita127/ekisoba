@@ -1,5 +1,6 @@
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE TemplateHaskell       #-}
+{-# LANGUAGE DuplicateRecordFields #-}
 module Language.C.Ekisoba.AST
 (
   Object(..)
@@ -12,7 +13,7 @@ import qualified Data.Aeson.TH as TH
 import qualified Data.Text     as T
 
 data Object = Object {
-                 objName :: T.Text
+                 name :: T.Text
               ,  program :: Program
               } deriving (Eq, Show)
 
@@ -21,9 +22,9 @@ newtype Program = Program {statements :: [Statement]} deriving (Eq, Show)
 
 
 data Statement = VariableDefinition {
-                    varName  :: T.Text
-                 ,  varType  :: [T.Text]
-                 ,  varValue :: Maybe T.Text
+                    name  :: T.Text
+                 ,  typ  :: [T.Text]
+                 ,  value :: Maybe T.Text
                  }
                  deriving (Eq, Show)
 
