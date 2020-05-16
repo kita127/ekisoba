@@ -11,15 +11,22 @@ import qualified Language.C.System.GCC      as GCC
 
 main :: IO ()
 main = do
-    parseRes <- C.parseCFile (GCC.newGCC "gcc")
+    cRes <- C.parseCFile (GCC.newGCC "gcc")
                         Nothing
                         ["-I/usr/include/gtk-2.0"]
                         "./examples/sample0.c"
     putStrLn ""
-    print parseRes
+    print cRes
     putStrLn ""
-    let transRes = case parseRes of
-            Right a -> Eki.translate a
-            _       -> error "parse error"
 
-    B.putStrLn $ AesP.encodePretty transRes
+    ekiRes <- Eki.parseCFile Eki.GCC
+                        ["-I/usr/include/gtk-2.0"]
+                        "./examples/sample0.c"
+
+    case ekiRes of
+        Right r -> B.putStrLn $ AesP.encodePretty r
+        Left r  -> error $ show r
+
+
+
+

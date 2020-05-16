@@ -1,14 +1,37 @@
 {-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE OverloadedStrings     #-}
-module Language.C.Ekisoba ( translate ) where
+module Language.C.Ekisoba
+(
+  parseCFile
+, Preprocessor(..)
+, translate
+) where
 
 import qualified Data.Text                   as T
+import qualified Language.C                  as C
 import qualified Language.C.Data.Ident       as ID
 import qualified Language.C.Data.Node        as Node
 import qualified Language.C.Data.Position    as Pos
 import qualified Language.C.Ekisoba.AST      as EAST
+import qualified Language.C.Parser           as Pars
 import qualified Language.C.Syntax.AST       as AST
 import qualified Language.C.Syntax.Constants as Const
+import qualified Language.C.System.GCC       as GCC
+
+type ParseError = Pars.ParseError
+data Preprocessor = GCC
+
+-- | preprocess (if necessary) and parse a C source file
+--
+--   > Synopsis: parseCFile preprocesssor cpp-opts file
+--   > Example:  parseCFile GCC ["-I/usr/include/gtk-2.0"] my-gtk-exts.c
+parseCFile :: Preprocessor -> [String] -> FilePath -> IO (Either ParseError EAST.Object)
+parseCFile GCC opts file = do
+    r <- C.parseCFile (GCC.newGCC "gcc") Nothing opts file
+    case r of
+        Right r' -> return . Right . translate $ r'
+        Left r'  -> return . Left $ r'
+
 
 -- | translate
 --
@@ -123,7 +146,7 @@ extractVarName ::
      )
   -> T.Text
 extractVarName (Just x, y, z) = extractVarNameDeclr x
-extractVarName  _               = undefined
+extractVarName  _             = undefined
 
 -- | extractVarNameDeclr
 --
