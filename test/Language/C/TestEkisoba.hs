@@ -34,7 +34,18 @@ testTranslate = TestList
         ]
     expected = [
         [r|{
-    "name": "./hoge.c"
+    "file": "./hoge.c"
+    "program":{
+        "statement":[
+            {
+                "variableDefinition":{
+                    "name":"hoge",
+                    "type":["char"],
+                    "value":null
+                }
+            }
+        ]
+    }
 }|]
         ]
 
