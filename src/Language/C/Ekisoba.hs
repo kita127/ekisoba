@@ -132,9 +132,15 @@ extractInitExpression (AST.CBuiltinExpr x)           = undefined
 --
 extractConstant :: AST.CConstant Node.NodeInfo -> T.Text
 extractConstant (AST.CIntConst n a)   = T.pack . show . Const.getCInteger $ n
-extractConstant (AST.CCharConst x a)  = undefined
+extractConstant (AST.CCharConst x a)  = extractChar $ x
 extractConstant (AST.CFloatConst x a) = undefined
 extractConstant (AST.CStrConst x a)   = undefined
+
+-- | extractChar
+--
+extractChar :: Const.CChar -> T.Text
+extractChar (Const.CChar c b)   = T.pack . show $ c
+extractChar (Const.CChars cs b) = undefined
 
 
 -- | extractVarName
@@ -174,7 +180,7 @@ extractVarType (AST.CAlignSpec   x) = undefined
 --
 extractVarTypeSpec :: AST.CTypeSpecifier Node.NodeInfo -> T.Text
 extractVarTypeSpec (AST.CVoidType a                   ) = undefined
-extractVarTypeSpec (AST.CCharType a                   ) = undefined
+extractVarTypeSpec (AST.CCharType a                   ) = "char"
 extractVarTypeSpec (AST.CShortType a                  ) = undefined
 extractVarTypeSpec (AST.CIntType a                    ) = "int"
 extractVarTypeSpec (AST.CLongType a                   ) = undefined
