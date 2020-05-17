@@ -28,6 +28,7 @@ library:
   - language-c
   - text
   - aeson
+  - extra
 
 executables:
   ekisoba-exe:

@@ -5,8 +5,11 @@ module Language.C.Ekisoba
   parseCFile
 , Preprocessor(..)
 , translate
+, ParseError(..)
 ) where
 
+import           Control.Monad
+import qualified Control.Monad.Extra         as Ext
 import qualified Data.Text                   as T
 import qualified Language.C                  as C
 import qualified Language.C.Data.Ident       as ID
@@ -18,8 +21,20 @@ import qualified Language.C.Syntax.AST       as AST
 import qualified Language.C.Syntax.Constants as Const
 import qualified Language.C.System.GCC       as GCC
 
-type ParseError = Pars.ParseError
+newtype ParseError = ParseError {
+                     message :: String
+                   }
 data Preprocessor = GCC
+
+-- | newParseError
+--
+newParseError :: String -> ParseError
+newParseError s = ParseError { message = s }
+
+-- | failParse
+--
+failParse :: String -> Either ParseError a
+failParse = Left . newParseError
 
 -- | preprocess (if necessary) and parse a C source file
 --
@@ -29,45 +44,48 @@ parseCFile :: Preprocessor -> [String] -> FilePath -> IO (Either ParseError EAST
 parseCFile GCC opts file = do
     r <- C.parseCFile (GCC.newGCC "gcc") Nothing opts file
     case r of
-        Right r' -> return . Right . translate $ r'
-        Left r'  -> return . Left $ r'
+        Right r' -> return . translate $ r'
+        Left r'  -> return . failParse $ "language-c parse error"
 
 
 -- | translate
 --
-translate :: AST.CTranslUnit -> EAST.Object
-translate (AST.CTranslUnit xs nodeInfo) =
-    EAST.Object {
-      EAST.name = extractNodeName nodeInfo
-    , EAST.program = extractProgram xs
+translate :: AST.CTranslUnit -> Either ParseError EAST.Object
+translate (AST.CTranslUnit xs nodeInfo) = do
+    n <- extractNodeName nodeInfo
+    p <- extractProgram xs
+    return EAST.Object {
+      EAST.name = n
+    , EAST.program = p
     }
 
 -- | extractNodeName
 --
-extractNodeName :: Node.NodeInfo -> T.Text
-extractNodeName (Node.OnlyPos _ _)    = undefined
-extractNodeName (Node.NodeInfo p _ _) = T.pack $ Pos.posFile p
+extractNodeName :: Node.NodeInfo -> Either ParseError T.Text
+extractNodeName (Node.OnlyPos _ _)    = failParse "Couldn't extract node name"
+extractNodeName (Node.NodeInfo p _ _) = Right . T.pack . Pos.posFile $ p
 
 -- | extractProgram
 --
-extractProgram :: [AST.CExternalDeclaration Node.NodeInfo] -> EAST.Program
-extractProgram xs =
-    EAST.Program {
-      EAST.statements = concatMap extractStatement xs
+extractProgram :: [AST.CExternalDeclaration Node.NodeInfo] -> Either ParseError EAST.Program
+extractProgram xs = do
+    ss <- Ext.concatMapM extractStatement xs
+    return EAST.Program {
+      EAST.statements = ss
     }
 
 -- | extractStatement
 --
-extractStatement :: AST.CExternalDeclaration Node.NodeInfo -> [EAST.Statement]
+extractStatement :: AST.CExternalDeclaration Node.NodeInfo -> Either ParseError [EAST.Statement]
 extractStatement (AST.CDeclExt x  ) = extractDeclaration x
-extractStatement (AST.CFDefExt x  ) = undefined
-extractStatement (AST.CAsmExt  x a) = undefined
+extractStatement (AST.CFDefExt x  ) = failParse "unimplemented"
+extractStatement (AST.CAsmExt  x a) = failParse "unimplemented"
 
 -- | extractDeclaration
 --
-extractDeclaration :: AST.CDeclaration Node.NodeInfo -> [EAST.Statement]
+extractDeclaration :: AST.CDeclaration Node.NodeInfo -> Either ParseError [EAST.Statement]
 extractDeclaration (AST.CDecl xs ys a)       = extractVarDef xs ys
-extractDeclaration (AST.CStaticAssert x y a) = undefined
+extractDeclaration (AST.CStaticAssert x y a) = failParse "unimplemented"
 
 -- | extractVarDef
 --
@@ -77,12 +95,18 @@ extractVarDef ::
       , Maybe (AST.CInitializer Node.NodeInfo)
       , Maybe (AST.CExpression Node.NodeInfo))
       ]
-   -> [EAST.Statement]
-extractVarDef xs ys = map (\y ->
-    EAST.VariableDefinition {
-      EAST.name = extractVarName y
-    , EAST.typ = map extractVarType xs
-    , EAST.value = extractInitValue y}) ys
+   -> Either ParseError [EAST.Statement]
+extractVarDef xs ys = do
+    mapM (\y -> do
+        n <- extractVarName y
+        t <- mapM extractVarType xs
+        v <- extractInitValue y
+        return EAST.VariableDefinition {
+                EAST.name = n
+              , EAST.typ = t
+              , EAST.value = v
+            }
+        ) ys
 
 -- | extractInitValue
 --
@@ -91,9 +115,9 @@ extractInitValue ::
      , Maybe (AST.CInitializer Node.NodeInfo)
      , Maybe (AST.CExpression Node.NodeInfo)
      )
-  -> Maybe T.Text
-extractInitValue (x, Nothing, z) = Nothing
-extractInitValue (x, Just y, z)  = Just $ extractInitializer y
+  -> Either ParseError (Maybe T.Text)
+extractInitValue (x, Nothing, z) = return Nothing
+extractInitValue (x, Just y, z)  = return . Just $ extractInitializer y
 
 -- | extractInitializer
 --
@@ -149,65 +173,65 @@ extractVarName ::
      , Maybe (AST.CInitializer Node.NodeInfo)
      , Maybe (AST.CExpression Node.NodeInfo)
      )
-  -> T.Text
+  -> Either ParseError T.Text
 extractVarName (Just x, y, z) = extractVarNameDeclr x
-extractVarName  _             = undefined
+extractVarName  _             = failParse "error extractVarName"
 
 -- | extractVarNameDeclr
 --
-extractVarNameDeclr :: AST.CDeclarator Node.NodeInfo -> T.Text
+extractVarNameDeclr :: AST.CDeclarator Node.NodeInfo -> Either ParseError T.Text
 extractVarNameDeclr (AST.CDeclr (Just ident) xs y zs a) = extractVarNameDeclrSpec ident
-extractVarNameDeclr _ = undefined
+extractVarNameDeclr _ = failParse "error extractVarNameDeclr"
 
 -- | extractVarNameDeclrSpec
 --
-extractVarNameDeclrSpec :: ID.Ident -> T.Text
-extractVarNameDeclrSpec (ID.Ident name n a) = T.pack name
+extractVarNameDeclrSpec :: ID.Ident -> Either ParseError T.Text
+extractVarNameDeclrSpec (ID.Ident name n a) = return . T.pack $ name
 
 
 
 -- | extractVarType
 --
-extractVarType :: AST.CDeclarationSpecifier Node.NodeInfo -> T.Text
+extractVarType :: AST.CDeclarationSpecifier Node.NodeInfo -> Either ParseError T.Text
 extractVarType (AST.CStorageSpec x) = extractStorageSpecifier x
 extractVarType (AST.CTypeSpec    x) = extractVarTypeSpec x
-extractVarType (AST.CTypeQual    x) = undefined
-extractVarType (AST.CFunSpec     x) = undefined
-extractVarType (AST.CAlignSpec   x) = undefined
+extractVarType (AST.CTypeQual    x) = failParse "error extractVarType pattern match CTypeQual"
+extractVarType (AST.CFunSpec     x) = failParse "error extractVarType pattern match CFunSpec"
+extractVarType (AST.CAlignSpec   x) = failParse "error extractVarType pattern match CLignSpec"
 
 -- | extractStorageSpecifier
 --
-extractStorageSpecifier :: AST.CStorageSpecifier Node.NodeInfo -> T.Text
-extractStorageSpecifier (AST.CAuto a    ) = undefined
-extractStorageSpecifier (AST.CRegister a) = undefined
-extractStorageSpecifier (AST.CStatic a  ) = "static"
-extractStorageSpecifier (AST.CExtern a  ) = undefined
-extractStorageSpecifier (AST.CTypedef a ) = undefined
-extractStorageSpecifier (AST.CThread a  ) = undefined
-extractStorageSpecifier (AST.CClKernel a) = undefined
-extractStorageSpecifier (AST.CClGlobal a) = undefined
-extractStorageSpecifier (AST.CClLocal a ) = undefined
+extractStorageSpecifier :: AST.CStorageSpecifier Node.NodeInfo -> Either ParseError T.Text
+extractStorageSpecifier (AST.CAuto a    ) = failParse "error extractStorageSpecifier match CAuto"
+extractStorageSpecifier (AST.CRegister a) = failParse "error extractStorageSpecifier match CRegister"
+extractStorageSpecifier (AST.CStatic a  ) = return "static"
+extractStorageSpecifier (AST.CExtern a  ) = failParse "error extractStorageSpecifier match CExtern"
+extractStorageSpecifier (AST.CTypedef a ) = failParse "error extractStorageSpecifier match CTypedef"
+extractStorageSpecifier (AST.CThread a  ) = failParse "error extractStorageSpecifier match CThread"
+extractStorageSpecifier (AST.CClKernel a) = failParse "error extractStorageSpecifier match CClKernel"
+extractStorageSpecifier (AST.CClGlobal a) = failParse "error extractStorageSpecifier match CClGlobal"
+extractStorageSpecifier (AST.CClLocal a ) = failParse "error extractStorageSpecifier match CClLocal"
 
 
 -- | extractVarTypeSpec
 --
-extractVarTypeSpec :: AST.CTypeSpecifier Node.NodeInfo -> T.Text
-extractVarTypeSpec (AST.CVoidType a                   ) = undefined
-extractVarTypeSpec (AST.CCharType a                   ) = "char"
-extractVarTypeSpec (AST.CShortType a                  ) = undefined
-extractVarTypeSpec (AST.CIntType a                    ) = "int"
-extractVarTypeSpec (AST.CLongType a                   ) = undefined
-extractVarTypeSpec (AST.CFloatType a                  ) = undefined
-extractVarTypeSpec (AST.CDoubleType a                 ) = undefined
-extractVarTypeSpec (AST.CSignedType a                 ) = undefined
-extractVarTypeSpec (AST.CUnsigType a                  ) = "unsigned"
-extractVarTypeSpec (AST.CBoolType a                   ) = undefined
-extractVarTypeSpec (AST.CComplexType a                ) = undefined
-extractVarTypeSpec (AST.CInt128Type a                 ) = undefined
-extractVarTypeSpec (AST.CFloatNType int bool a        ) = undefined
-extractVarTypeSpec (AST.CSUType x a )                   = undefined
-extractVarTypeSpec (AST.CEnumType x a  )                = undefined
-extractVarTypeSpec (AST.CTypeDef ident a              ) = undefined
-extractVarTypeSpec (AST.CTypeOfExpr x a )               = undefined
-extractVarTypeSpec (AST.CTypeOfType x a)                = undefined
-extractVarTypeSpec (AST.CAtomicType x a)                = undefined
+extractVarTypeSpec :: AST.CTypeSpecifier Node.NodeInfo -> Either ParseError T.Text
+extractVarTypeSpec (AST.CVoidType a                   ) = failParse "unimplemented"
+extractVarTypeSpec (AST.CCharType a                   ) = return "char"
+extractVarTypeSpec (AST.CShortType a                  ) = failParse "unimplemented"
+extractVarTypeSpec (AST.CIntType a                    ) = return "int"
+extractVarTypeSpec (AST.CLongType a                   ) = failParse "unimplemented"
+extractVarTypeSpec (AST.CFloatType a                  ) = failParse "unimplemented"
+extractVarTypeSpec (AST.CDoubleType a                 ) = failParse "unimplemented"
+extractVarTypeSpec (AST.CSignedType a                 ) = failParse "unimplemented"
+extractVarTypeSpec (AST.CUnsigType a                  ) = return "unsigned"
+extractVarTypeSpec (AST.CBoolType a                   ) = failParse "unimplemented"
+extractVarTypeSpec (AST.CComplexType a                ) = failParse "unimplemented"
+extractVarTypeSpec (AST.CInt128Type a                 ) = failParse "unimplemented"
+extractVarTypeSpec (AST.CFloatNType int bool a        ) = failParse "unimplemented"
+extractVarTypeSpec (AST.CSUType x a )                   = failParse "unimplemented"
+extractVarTypeSpec (AST.CEnumType x a  )                = failParse "unimplemented"
+extractVarTypeSpec (AST.CTypeDef ident a              ) = failParse "unimplemented"
+extractVarTypeSpec (AST.CTypeOfExpr x a )               = failParse "unimplemented"
+extractVarTypeSpec (AST.CTypeOfType x a)                = failParse "unimplemented"
+extractVarTypeSpec (AST.CAtomicType x a)                = failParse "unimplemented"

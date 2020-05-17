@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 8d89c4c9d0ae099544082bc56b3ac65f2efd8b09c21f8c58376ece923bb8237c
+-- hash: 2aa16c1af01b02a6f15e9c4f7ba7d918b9424e1704ad9fe3a0933a2665d2fb86
 
 name:           ekisoba
 version:        0.1.0.0
@@ -36,6 +36,7 @@ library
   build-depends:
       aeson
     , base >=4.7 && <5
+    , extra
     , language-c
     , text
   default-language: Haskell2010

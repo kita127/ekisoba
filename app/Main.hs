@@ -27,7 +27,7 @@ main = do
 
     case ekiRes of
         Right r -> B.putStrLn $ AesP.encodePretty r
-        Left r  -> error $ show r
+        Left r  -> error $ Eki.message r
 
 
 

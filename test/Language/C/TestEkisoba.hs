@@ -29,7 +29,9 @@ testTranslate :: Test
 testTranslate = TestList $ map helper testTable
   where
     helper (comment, path, input, expected) =
-        comment ~: (string . Eki.translate . cToOriginAst path) input ~?= expected
+        comment ~: ((\r -> case r of
+            Right r' -> string r'
+            Left l   -> error $ Eki.message l) . Eki.translate . cToOriginAst path) input ~?= expected
     testTable = [ ("testTranslate test 1", "./hoge.c"
                   , [r|int hoge;|]
                   , [r|int hoge;|])
