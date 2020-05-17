@@ -26,32 +26,21 @@ testSample = TestList
     ]
 
 testTranslate :: Test
-testTranslate = TestList
-    [ "testTranslate test 1" ~: helper "./hoge.c" input 0 ~?= (expected !! 0)
-    , "testTranslate test 2" ~: helper "./hoge.c" input 1 ~?= (expected !! 1)
-    , "testTranslate test 3" ~: helper "./hoge.c" input 2 ~?= (expected !! 2)
-    ]
+testTranslate = TestList $ map helper testTable
   where
-    helper path inp n = (string . Eki.translate . cToOriginAst path) (inp !! n)
-    input = [
-          [r|int hoge;|]
-        , [r|int hoge = 123;|]
-        , [r|int hoge = 123;char fuga = 'k';|]
-        ]
-    expected = [
-          [r|int hoge;|]
-        , [r|int hoge = 123;|]
-        , [r|int hoge = 123;
-char fuga = 'k';|]
-        ]
-
+    helper (comment, path, input, expected) =
+        comment ~: (string . Eki.translate . cToOriginAst path) input ~?= expected
+    testTable = [ ("testTranslate test 1", "./hoge.c"
+                  , [r|int hoge;|]
+                  , [r|int hoge;|])
+                , ("testTranslate test 2", "./hoge.c"
+                  , [r|int hoge = 123; char fuga = 'k';|]
+                  , [r|int hoge = 123;
+char fuga = 'k';|])
+                ]
 
 cToOriginAst :: FilePath -> IS.InputStream -> AST.CTranslUnit
 cToOriginAst file text = case Pars.parseC text (Pos.initPos file) of
         Left _  -> error "parse error"
         Right r -> r
-
---writeTempFile :: T.Text -> IO AST.CTranslUnit
---writeTempFile _ = do
---    (path, handle) <- SIO.openTempFile "." "ekisoba-test"
 
