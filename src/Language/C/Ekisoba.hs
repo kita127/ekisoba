@@ -45,7 +45,7 @@ translate (AST.CTranslUnit xs nodeInfo) =
 -- | extractNodeName
 --
 extractNodeName :: Node.NodeInfo -> T.Text
-extractNodeName (Node.OnlyPos _ _)    = error "only position error"
+extractNodeName (Node.OnlyPos _ _)    = undefined
 extractNodeName (Node.NodeInfo p _ _) = T.pack $ Pos.posFile p
 
 -- | extractProgram
