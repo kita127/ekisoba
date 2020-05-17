@@ -169,11 +169,25 @@ extractVarNameDeclrSpec (ID.Ident name n a) = T.pack name
 -- | extractVarType
 --
 extractVarType :: AST.CDeclarationSpecifier Node.NodeInfo -> T.Text
-extractVarType (AST.CStorageSpec x) = undefined
+extractVarType (AST.CStorageSpec x) = extractStorageSpecifier x
 extractVarType (AST.CTypeSpec    x) = extractVarTypeSpec x
 extractVarType (AST.CTypeQual    x) = undefined
 extractVarType (AST.CFunSpec     x) = undefined
 extractVarType (AST.CAlignSpec   x) = undefined
+
+-- | extractStorageSpecifier
+--
+extractStorageSpecifier :: AST.CStorageSpecifier Node.NodeInfo -> T.Text
+extractStorageSpecifier (AST.CAuto a    ) = undefined
+extractStorageSpecifier (AST.CRegister a) = undefined
+extractStorageSpecifier (AST.CStatic a  ) = "static"
+extractStorageSpecifier (AST.CExtern a  ) = undefined
+extractStorageSpecifier (AST.CTypedef a ) = undefined
+extractStorageSpecifier (AST.CThread a  ) = undefined
+extractStorageSpecifier (AST.CClKernel a) = undefined
+extractStorageSpecifier (AST.CClGlobal a) = undefined
+extractStorageSpecifier (AST.CClLocal a ) = undefined
+
 
 -- | extractVarTypeSpec
 --
@@ -186,7 +200,7 @@ extractVarTypeSpec (AST.CLongType a                   ) = undefined
 extractVarTypeSpec (AST.CFloatType a                  ) = undefined
 extractVarTypeSpec (AST.CDoubleType a                 ) = undefined
 extractVarTypeSpec (AST.CSignedType a                 ) = undefined
-extractVarTypeSpec (AST.CUnsigType a                  ) = undefined
+extractVarTypeSpec (AST.CUnsigType a                  ) = "unsigned"
 extractVarTypeSpec (AST.CBoolType a                   ) = undefined
 extractVarTypeSpec (AST.CComplexType a                ) = undefined
 extractVarTypeSpec (AST.CInt128Type a                 ) = undefined

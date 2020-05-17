@@ -41,6 +41,9 @@ char fuga = 'k';|])
                   , [r|char var_a, var_b = 154;|]
                   , [r|char var_a;
 char var_b = 154;|])
+                , ("testTranslate test 3", "./hoge.c"
+                  , [r|static unsigned int var_s_uint = 555;|]
+                  , [r|static unsigned int var_s_uint = 555;|])
                 ]
 
 cToOriginAst :: FilePath -> IS.InputStream -> AST.CTranslUnit
