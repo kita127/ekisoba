@@ -53,19 +53,19 @@ extractNodeName (Node.NodeInfo p _ _) = T.pack $ Pos.posFile p
 extractProgram :: [AST.CExternalDeclaration Node.NodeInfo] -> EAST.Program
 extractProgram xs =
     EAST.Program {
-      EAST.statements = map extractStatement xs
+      EAST.statements = concatMap extractStatement xs
     }
 
 -- | extractStatement
 --
-extractStatement :: AST.CExternalDeclaration Node.NodeInfo -> EAST.Statement
+extractStatement :: AST.CExternalDeclaration Node.NodeInfo -> [EAST.Statement]
 extractStatement (AST.CDeclExt x  ) = extractDeclaration x
 extractStatement (AST.CFDefExt x  ) = undefined
 extractStatement (AST.CAsmExt  x a) = undefined
 
 -- | extractDeclaration
 --
-extractDeclaration :: AST.CDeclaration Node.NodeInfo -> EAST.Statement
+extractDeclaration :: AST.CDeclaration Node.NodeInfo -> [EAST.Statement]
 extractDeclaration (AST.CDecl xs ys a)       = extractVarDef xs ys
 extractDeclaration (AST.CStaticAssert x y a) = undefined
 
@@ -77,13 +77,12 @@ extractVarDef ::
       , Maybe (AST.CInitializer Node.NodeInfo)
       , Maybe (AST.CExpression Node.NodeInfo))
       ]
-   -> EAST.Statement
-extractVarDef xs ys =
+   -> [EAST.Statement]
+extractVarDef xs ys = map (\y ->
     EAST.VariableDefinition {
-      EAST.name  = extractVarName $ head ys
-    , EAST.typ  = map extractVarType xs
-    , EAST.value = extractInitValue $ head ys
-    }
+      EAST.name = extractVarName y
+    , EAST.typ = map extractVarType xs
+    , EAST.value = extractInitValue y}) ys
 
 -- | extractInitValue
 --

@@ -37,6 +37,10 @@ testTranslate = TestList $ map helper testTable
                   , [r|int hoge = 123; char fuga = 'k';|]
                   , [r|int hoge = 123;
 char fuga = 'k';|])
+                , ("testTranslate test 3", "./hoge.c"
+                  , [r|char var_a, var_b = 154;|]
+                  , [r|char var_a;
+char var_b = 154;|])
                 ]
 
 cToOriginAst :: FilePath -> IS.InputStream -> AST.CTranslUnit
