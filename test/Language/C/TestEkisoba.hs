@@ -36,8 +36,7 @@ testTranslate = TestList
     input = [
           [r|int hoge;|]
         , [r|int hoge = 123;|]
-        , [r|int hoge = 123;
-char fuga = 'k';|]
+        , [r|int hoge = 123;char fuga = 'k';|]
         ]
     expected = [
           [r|int hoge;|]
