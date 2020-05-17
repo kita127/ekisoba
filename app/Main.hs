@@ -8,7 +8,7 @@ import qualified Language.C                 as C
 import qualified Language.C.Ekisoba         as Eki
 import qualified Language.C.Pretty          as Pretty
 import qualified Language.C.System.GCC      as GCC
-import           System.Environment (getArgs)
+import           System.Environment         (getArgs)
 
 main :: IO ()
 main = do
