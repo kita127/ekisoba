@@ -17,36 +17,37 @@ import           Text.RawString.QQ
 
 main :: IO ()
 main = do
-    runTestTT $ TestList [testSample, testTranslate]
+    runTestTT $ TestList [testSample, testVariableDefinition]
     return ()
+
+helper (comment, path, input, expected) =
+    comment ~: ((\r -> case r of
+        Right r' -> string r'
+        Left l   -> error $ Eki.message l) . Eki.translate . cToOriginAst path) input ~?= expected
 
 testSample :: Test
 testSample = TestList
     [ "testSample test 1" ~: "hello" ~?= "hello"
     ]
 
-testTranslate :: Test
-testTranslate = TestList $ map helper testTable
+testVariableDefinition :: Test
+testVariableDefinition = TestList $ map helper testTable
   where
-    helper (comment, path, input, expected) =
-        comment ~: ((\r -> case r of
-            Right r' -> string r'
-            Left l   -> error $ Eki.message l) . Eki.translate . cToOriginAst path) input ~?= expected
-    testTable = [ ("testTranslate test 1", "./hoge.c"
+    testTable = [ ("test variable definition 1", "./hoge.c"
                   , [r|int hoge;|]
                   , [r|int hoge;|])
-                , ("testTranslate test 2", "./hoge.c"
+                , ("test variable definition 2", "./hoge.c"
                   , [r|int hoge = 123; char fuga = 'k';|]
                   , [r|int hoge = 123;
 char fuga = 'k';|])
-                , ("testTranslate test 3", "./hoge.c"
+                , ("test variable definition 3", "./hoge.c"
                   , [r|char var_a, var_b = 154;|]
                   , [r|char var_a;
 char var_b = 154;|])
-                , ("testTranslate test 3", "./hoge.c"
+                , ("test variable definition 4", "./hoge.c"
                   , [r|static unsigned int var_s_uint = 555;|]
                   , [r|static unsigned int var_s_uint = 555;|])
-                , ("testTranslate test 4", "./hoge.c"
+                , ("test variable definition 5", "./hoge.c"
                   , [r|char var_c;
 unsigned char var_uc;
 signed char var_sc;
@@ -84,6 +85,9 @@ float var_f;
 double var_d;
 signed long long var_sll;|]
                   )
+                , ("test variable definition 4", "./hoge.c"
+                  , [r|char *p_var;|]
+                  , [r|char *p_var;|])
                 ]
 
 cToOriginAst :: FilePath -> IS.InputStream -> AST.CTranslUnit

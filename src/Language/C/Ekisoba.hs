@@ -99,14 +99,39 @@ extractVarDef ::
 extractVarDef xs ys = do
     mapM (\y -> do
         n <- extractVarName y
-        t <- mapM extractVarType xs
+        ts <- mapM extractVarType xs
+        ps <- mapM extractPointer ys
         v <- extractInitValue y
         return EAST.VariableDefinition {
                 EAST.name = n
-              , EAST.typ = t
+              , EAST.typ = ts ++ ps
               , EAST.value = v
             }
         ) ys
+
+-- | extractPointer
+--
+extractPointer ::
+      ( Maybe (AST.CDeclarator Node.NodeInfo)
+      , Maybe (AST.CInitializer Node.NodeInfo)
+      , Maybe (AST.CExpression Node.NodeInfo)
+      )
+   -> Either ParseError T.Text
+extractPointer (Just x, y, z) = extractPointerCDeclarator x
+extractPointer _              = failParse "error extractPointer"
+
+-- | extractPointerCDeclarator
+--
+extractPointerCDeclarator :: AST.CDeclarator a -> Either ParseError T.Text
+extractPointerCDeclarator (AST.CDeclr ident xs y zs a) = Ext.mconcatMapM extractPointerCDerivedDeclarator $ xs
+
+-- | extractPointerCDerivedDeclarator
+--
+extractPointerCDerivedDeclarator :: AST.CDerivedDeclarator a -> Either ParseError T.Text
+extractPointerCDerivedDeclarator (AST.CPtrDeclr xs a) = return "*"
+extractPointerCDerivedDeclarator (AST.CArrDeclr xs y a) = failParse "error CArrDeclr"
+extractPointerCDerivedDeclarator (AST.CFunDeclr x ys a) = failParse "error CFunDeclr"
+
 
 -- | extractInitValue
 --
