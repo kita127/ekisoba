@@ -21,3 +21,5 @@ float var_f;
 double var_d;
 signed long long var_sll;
 char *var_p;
+char **var_pp;
+char ***var_ppp;

@@ -86,8 +86,12 @@ double var_d;
 signed long long var_sll;|]
                   )
                 , ("test variable definition 4", "./hoge.c"
-                  , [r|char *p_var;|]
-                  , [r|char * p_var;|])
+                  , [r|char *p_var;
+char **pp_var;
+char ***ppp_var;|]
+                  , [r|char * p_var;
+char * * pp_var;
+char * * * ppp_var;|])
                 ]
 
 cToOriginAst :: FilePath -> IS.InputStream -> AST.CTranslUnit
