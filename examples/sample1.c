@@ -20,3 +20,4 @@ signed long long var_sll;
 float var_f;
 double var_d;
 signed long long var_sll;
+char *var_p;

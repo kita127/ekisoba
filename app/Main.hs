@@ -25,6 +25,12 @@ main = do
                         ["-I/usr/include/gtk-2.0"]
                         (args !! 0)
 
+    putStrLn ""
+    case ekiRes of
+        Right r -> print r
+        Left r  -> error $ Eki.message r
+
+    putStrLn ""
     case ekiRes of
         Right r -> B.putStrLn $ AesP.encodePretty r
         Left r  -> error $ Eki.message r
