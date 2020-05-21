@@ -78,8 +78,68 @@ extractProgram xs = do
 --
 extractStatement :: AST.CExternalDeclaration Node.NodeInfo -> Either ParseError [EAST.Statement]
 extractStatement (AST.CDeclExt x  ) = extractDeclaration x
-extractStatement (AST.CFDefExt x  ) = failParse "unimplemented"
+extractStatement (AST.CFDefExt x  ) = extractCFunctionDef x
 extractStatement (AST.CAsmExt  x a) = failParse "unimplemented"
+
+-- | extractCFunctionDef
+--
+extractCFunctionDef :: AST.CFunctionDef Node.NodeInfo -> Either ParseError [EAST.Statement]
+extractCFunctionDef (AST.CFunDef xs y zs q a) = do
+    ts <- mapM extractVarType xs
+    n <- extractVarNameDeclr y
+    args <- extractArgs y
+    body <- extractBody q
+    return [EAST.FunctionDefinition {
+      EAST.name = n
+    , EAST.retType = ts
+    , EAST.args = args
+    , EAST.body = body
+    }]
+
+-- | extractBody
+--
+extractBody :: AST.CStatement Node.NodeInfo -> Either ParseError EAST.Statement
+extractBody (AST.CLabel ident x ys a  ) = failParse "unimplemented"
+extractBody (AST.CCase x ys a         ) = failParse "unimplemented"
+extractBody (AST.CCases x y z a       ) = failParse "unimplemented"
+extractBody (AST.CDefault x a         ) = failParse "unimplemented"
+extractBody (AST.CExpr x a            ) = failParse "unimplemented"
+extractBody (AST.CCompound idents xs a) = Ext.concatMapM extractCompBlockItem xs >>=
+                                            (\ss -> return EAST.BlockStatement {EAST.statements = ss})
+extractBody (AST.CIf x y z a          ) = failParse "unimplemented"
+extractBody (AST.CSwitch x y a        ) = failParse "unimplemented"
+extractBody (AST.CWhile x y bool a    ) = failParse "unimplemented"
+extractBody (AST.CFor x y z q a       ) = failParse "unimplemented"
+extractBody (AST.CGoto ident a        ) = failParse "unimplemented"
+extractBody (AST.CGotoPtr x a         ) = failParse "unimplemented"
+extractBody (AST.CCont a              ) = failParse "unimplemented"
+extractBody (AST.CBreak a             ) = failParse "unimplemented"
+extractBody (AST.CReturn x a          ) = failParse "unimplemented"
+extractBody (AST.CAsm x a             ) = failParse "unimplemented"
+
+-- | extractCompBlockItem
+--
+extractCompBlockItem :: AST.CCompoundBlockItem Node.NodeInfo -> Either ParseError [EAST.Statement]
+extractCompBlockItem (AST.CBlockStmt x   ) = failParse "unimplemented"
+extractCompBlockItem (AST.CBlockDecl x   ) = extractDeclaration x
+extractCompBlockItem (AST.CNestedFunDef x) = failParse "unimplemented"
+
+
+
+
+-- | extractArgs
+--
+extractArgs :: AST.CDeclarator Node.NodeInfo -> Either ParseError EAST.Statement
+extractArgs (AST.CDeclr ident xs y zs a) =
+    extractArgsDerivedDec xs >>= (\vs -> return EAST.Argument{EAST.vars = vs})
+
+-- | extractArgsDerivedDec
+--
+extractArgsDerivedDec :: [AST.CDerivedDeclarator Node.NodeInfo] -> Either ParseError [EAST.Statement]
+extractArgsDerivedDec ((AST.CPtrDeclr xs a  ):_) = failParse "unimplemented"
+extractArgsDerivedDec ((AST.CArrDeclr xs y a):_) = failParse "unimplemented"
+extractArgsDerivedDec ((AST.CFunDeclr (Right (xs, bool)) ys a):_) = Ext.concatMapM extractDeclaration xs
+extractArgsDerivedDec _ = undefined
 
 -- | extractDeclaration
 --
@@ -97,17 +157,24 @@ extractVarDef ::
       ]
    -> Either ParseError [EAST.Statement]
 extractVarDef xs ys = do
-    mapM (\y -> do
-        n <- extractVarName y
-        ts <- mapM extractVarType xs
-        ps <- Ext.concatMapM extractPointer ys
-        v <- extractInitValue y
-        return EAST.VariableDefinition {
-                EAST.name = n
-              , EAST.typ = ts ++ ps
-              , EAST.value = v
-            }
-        ) ys
+    ts <- mapM extractVarType xs
+    if ts == ["void"]
+        then return [ EAST.VariableDefinition {
+                        EAST.name = ""
+                      , EAST.typ = ts
+                      , EAST.value = Nothing}
+                    ]
+        else mapM (\y -> do
+                n <- extractVarName y
+                ts <- mapM extractVarType xs
+                ps <- Ext.concatMapM extractPointer ys
+                v <- extractInitValue y
+                return EAST.VariableDefinition {
+                        EAST.name = n
+                      , EAST.typ = ts ++ ps
+                      , EAST.value = v
+                    }
+                ) ys
 
 -- | extractPointer
 --

@@ -23,3 +23,6 @@ signed long long var_sll;
 char *var_p;
 char **var_pp;
 char ***var_ppp;
+
+void func(void) {}
+

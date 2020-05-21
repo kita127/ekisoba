@@ -29,6 +29,7 @@ library:
   - text
   - aeson
   - extra
+  - text
 
 executables:
   ekisoba-exe:

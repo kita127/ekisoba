@@ -17,7 +17,10 @@ import           Text.RawString.QQ
 
 main :: IO ()
 main = do
-    runTestTT $ TestList [testSample, testVariableDefinition]
+    runTestTT $ TestList [ testSample
+                         , testVariableDefinition
+                         , testFunctionDefinition
+                         ]
     return ()
 
 helper (comment, path, input, expected) =
@@ -92,6 +95,22 @@ char ***ppp_var;|]
                   , [r|char * p_var;
 char * * pp_var;
 char * * * ppp_var;|])
+                ]
+
+testFunctionDefinition :: Test
+testFunctionDefinition = TestList $ map helper testTable
+  where
+    testTable = [ ("test function definition 1", "./hoge.c"
+                  , [r|void func(void){}
+void func2(int a, char b){}|]
+                  , [r|void func(void)
+{
+
+}
+void func2(int a, char b)
+{
+
+}|])
                 ]
 
 cToOriginAst :: FilePath -> IS.InputStream -> AST.CTranslUnit
