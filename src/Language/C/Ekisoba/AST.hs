@@ -6,6 +6,7 @@ module Language.C.Ekisoba.AST
   Object(..)
 , Program(..)
 , Statement(..)
+, Expression(..)
 , string
 ) where
 
@@ -34,7 +35,7 @@ instance Stringble Program where
 data Statement = VariableDefinition {
                    name  :: T.Text
                  , typ   :: [T.Text]
-                 , value :: Maybe T.Text
+                 , value :: Maybe Expression
                  }
                | FunctionDefinition {
                    name    :: T.Text
@@ -65,10 +66,29 @@ instance Stringble Statement where
         nestBlock nest BlockStatement{statements = ss} =
                  "{\n" <> T.intercalate "\n" (map (nesting nest) ss) <> "\n}"
 
+data Expression = IntegerLiteral {
+                    intVal :: Integer
+                  }
+                | CharLiteral {
+                    charVal :: Char
+                  }
+                | InfixExpression {
+                    left     :: Expression
+                  , operator :: T.Text
+                  , right    :: Expression
+                  }
+               deriving (Eq, Show)
+
+instance Stringble Expression where
+    string IntegerLiteral{intVal = v} = T.pack . show $ v
+    string CharLiteral{charVal = c}   = "'" <> T.singleton c <> "'"
+    string InfixExpression{left = l, operator = op, right = r}
+        = string l <> " " <> op <> " " <> string r
+
 nesting nest x = T.pack (replicate nest ' ') <> string x
 
-valueToStr :: Maybe T.Text -> T.Text
-valueToStr (Just v) = " = " <> v
+valueToStr :: Maybe Expression -> T.Text
+valueToStr (Just v) = " = " <> string v
 valueToStr Nothing  = ""
 
 variableToStr :: Statement -> T.Text
@@ -78,3 +98,4 @@ variableToStr VariableDefinition{name = n, typ = ts, value = v} =
 $(TH.deriveJSON TH.defaultOptions ''Object)
 $(TH.deriveJSON TH.defaultOptions ''Program)
 $(TH.deriveJSON TH.defaultOptions ''Statement)
+$(TH.deriveJSON TH.defaultOptions ''Expression)

@@ -207,23 +207,23 @@ extractInitValue ::
      , Maybe (AST.CInitializer Node.NodeInfo)
      , Maybe (AST.CExpression Node.NodeInfo)
      )
-  -> Either ParseError (Maybe T.Text)
+  -> Either ParseError (Maybe EAST.Expression)
 extractInitValue (x, Nothing, z) = return Nothing
-extractInitValue (x, Just y, z)  = return . Just $ extractInitializer y
+extractInitValue (x, Just y, z)  = extractInitializer y >>= return . Just
 
 -- | extractInitializer
 --
-extractInitializer :: AST.CInitializer Node.NodeInfo -> T.Text
+extractInitializer :: AST.CInitializer Node.NodeInfo -> Either ParseError EAST.Expression
 extractInitializer (AST.CInitExpr x a ) = extractInitExpression x
 extractInitializer (AST.CInitList x a ) = undefined
 
 -- | extractInitExpression
 --
-extractInitExpression :: AST.CExpression Node.NodeInfo -> T.Text
+extractInitExpression :: AST.CExpression Node.NodeInfo -> Either ParseError EAST.Expression
 extractInitExpression (AST.CComma xs a)              = undefined
 extractInitExpression (AST.CAssign x y z a)          = undefined
 extractInitExpression (AST.CCond x y z a)            = undefined
-extractInitExpression (AST.CBinary x y z a)          = undefined
+extractInitExpression (AST.CBinary op left right a)  = extractBinaryOp op left right
 extractInitExpression (AST.CCast x y a)              = undefined
 extractInitExpression (AST.CUnary x y a)             = undefined
 extractInitExpression (AST.CSizeofExpr x a)          = undefined
@@ -243,18 +243,53 @@ extractInitExpression (AST.CStatExpr x a)            = undefined
 extractInitExpression (AST.CLabAddrExpr ident a)     = undefined
 extractInitExpression (AST.CBuiltinExpr x)           = undefined
 
+-- | extractBinaryOp
+--
+extractBinaryOp ::
+    AST.CBinaryOp
+ -> (AST.CExpression Node.NodeInfo)
+ -> (AST.CExpression Node.NodeInfo)
+ -> Either ParseError EAST.Expression
+extractBinaryOp AST.CMulOp left right = undefined
+extractBinaryOp AST.CDivOp left right = undefined
+extractBinaryOp AST.CRmdOp left right = undefined
+extractBinaryOp AST.CAddOp left right = do
+    l <- extractInitExpression left
+    r <- extractInitExpression right
+    return EAST.InfixExpression {
+             EAST.left = l
+           , EAST.operator = "+"
+           , EAST.right = r}
+extractBinaryOp AST.CSubOp left right = undefined
+extractBinaryOp AST.CShlOp left right = undefined
+extractBinaryOp AST.CShrOp left right = undefined
+extractBinaryOp AST.CLeOp  left right = undefined
+extractBinaryOp AST.CGrOp  left right = undefined
+extractBinaryOp AST.CLeqOp left right = undefined
+extractBinaryOp AST.CGeqOp left right = undefined
+extractBinaryOp AST.CEqOp  left right = undefined
+extractBinaryOp AST.CNeqOp left right = undefined
+extractBinaryOp AST.CAndOp left right = undefined
+extractBinaryOp AST.CXorOp left right = undefined
+extractBinaryOp AST.COrOp  left right = undefined
+extractBinaryOp AST.CLndOp left right = undefined
+extractBinaryOp AST.CLorOp left right = undefined
+
+
+
+
 -- | extractConstant
 --
-extractConstant :: AST.CConstant Node.NodeInfo -> T.Text
-extractConstant (AST.CIntConst n a)   = T.pack . show . Const.getCInteger $ n
+extractConstant :: AST.CConstant Node.NodeInfo -> Either ParseError EAST.Expression
+extractConstant (AST.CIntConst n a)   = return EAST.IntegerLiteral{EAST.intVal = Const.getCInteger n}
 extractConstant (AST.CCharConst x a)  = extractChar $ x
 extractConstant (AST.CFloatConst x a) = undefined
 extractConstant (AST.CStrConst x a)   = undefined
 
 -- | extractChar
 --
-extractChar :: Const.CChar -> T.Text
-extractChar (Const.CChar c b)   = T.pack . show $ c
+extractChar :: Const.CChar -> Either ParseError EAST.Expression
+extractChar (Const.CChar c b)   = return EAST.CharLiteral{EAST.charVal = c}
 extractChar (Const.CChars cs b) = undefined
 
 

@@ -95,6 +95,10 @@ char ***ppp_var;|]
                   , [r|char * p_var;
 char * * pp_var;
 char * * * ppp_var;|])
+                , ("test variable definition expression 1", "./hoge.c"
+                  , [r|int expVar = 1 + 1;|]
+                  , [r|int expVar = 1 + 1;|]
+                  )
                 ]
 
 testFunctionDefinition :: Test

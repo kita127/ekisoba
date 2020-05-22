@@ -24,5 +24,7 @@ char *var_p;
 char **var_pp;
 char ***var_ppp;
 
+int var_exp = 1 + 1;
+
 void func(void) {}
 
