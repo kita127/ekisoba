@@ -146,8 +146,33 @@ extractArgsDerivedDec _ = undefined
 -- | extractDeclaration
 --
 extractDeclaration :: AST.CDeclaration Node.NodeInfo -> EkiParser [EAST.Statement]
-extractDeclaration (AST.CDecl xs ys a)       = extractVarDef xs ys
+extractDeclaration (AST.CDecl xs ys a)       = extractVarDefOrStructure xs ys
 extractDeclaration (AST.CStaticAssert x y a) = failParse "unimplemented"
+
+-- | extractVarDefOrStructure
+--
+extractVarDefOrStructure ::
+      [AST.CDeclarationSpecifier Node.NodeInfo]
+   -> [(Maybe (AST.CDeclarator Node.NodeInfo)
+      , Maybe (AST.CInitializer Node.NodeInfo)
+      , Maybe (AST.CExpression Node.NodeInfo))
+      ]
+   -> EkiParser [EAST.Statement]
+extractVarDefOrStructure xs ys =
+    if isStructure (head xs)
+        then extractStrUniDecl (head xs) >>= return . (:[])
+        else extractVarDef xs ys
+
+-- | extractStrUniDecl
+--
+extractStrUniDecl :: AST.CDeclarationSpecifier Node.NodeInfo -> EkiParser EAST.Statement
+extractStrUniDecl (AST.CTypeSpec x) = extractVarTypeSpec x
+
+-- | isStructure
+--
+isStructure :: AST.CDeclarationSpecifier Node.NodeInfo -> Bool
+isStructure (AST.CTypeSpec (AST.CSUType _ a)) = True
+isStructure _                                 = False
 
 -- | extractVarDef
 --
@@ -402,8 +427,14 @@ newType n = EAST.Type {name = n}
 
 -- | extractStructureUnion
 --
-extractStructureUnion :: AST.CStructureUnion a -> EkiParser EAST.Statement
-extractStructureUnion (AST.CStruct AST.CStructTag (Just ident) x ys a) = failParse "CStructTag"
+extractStructureUnion :: AST.CStructureUnion Node.NodeInfo -> EkiParser EAST.Statement
+extractStructureUnion (AST.CStruct AST.CStructTag (Just ident) (Just xs) ys a) = do
+    n <- extractVarNameDeclrSpec ident
+    ms <- Ext.concatMapM extractDeclaration xs
+    return EAST.StructDeclaration {
+             EAST.name = n
+           , EAST.menbers = ms
+           }
 extractStructureUnion (AST.CStruct AST.CUnionTag  ident x ys a) = failParse "CUnionTag"
 extractStructureUnion _ = failParse "StructureUnion error"
 

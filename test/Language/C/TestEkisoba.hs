@@ -105,13 +105,11 @@ volatile int piyo;|])
                   , [r|struct St_tag {
   int menber_i;
   char menber_c;
-};
-|]
+};|]
                   , [r|struct St_tag {
     int menber_i;
     char menber_c;
-};
-|])
+};|])
                 ]
 
 testFunctionDefinition :: Test

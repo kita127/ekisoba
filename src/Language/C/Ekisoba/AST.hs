@@ -68,6 +68,8 @@ instance Stringble Statement where
             then "void"
             else T.intercalate ", " (map variableToStr vs)
     string Type{name = n} = n
+    string StructDeclaration{name = n, menbers = ms} =
+        "struct " <> n <> " {\n" <> T.intercalate "\n" (map (nesting 4) ms) <> "\n};"
     string b@(BlockStatement{}) = nestBlock 4 b
       where
         nestBlock :: Int -> Statement -> T.Text
