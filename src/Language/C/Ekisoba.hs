@@ -378,9 +378,14 @@ extractVarTypeSpec (AST.CBoolType a                   ) = failParse "unimplement
 extractVarTypeSpec (AST.CComplexType a                ) = failParse "unimplemented CComplexType"
 extractVarTypeSpec (AST.CInt128Type a                 ) = failParse "unimplemented CInt128Type"
 extractVarTypeSpec (AST.CFloatNType int bool a        ) = failParse "unimplemented CFloatNType"
-extractVarTypeSpec (AST.CSUType x a )                   = failParse "unimplemented CSUType"
+extractVarTypeSpec (AST.CSUType x a )                   = extractStructureUnion x
 extractVarTypeSpec (AST.CEnumType x a  )                = failParse "unimplemented CEnumType"
 extractVarTypeSpec (AST.CTypeDef ident a              ) = failParse "unimplemented CTypeDef"
 extractVarTypeSpec (AST.CTypeOfExpr x a )               = failParse "unimplemented CTypeOfExpr"
 extractVarTypeSpec (AST.CTypeOfType x a)                = failParse "unimplemented CTypeOfType"
 extractVarTypeSpec (AST.CAtomicType x a)                = failParse "unimplemented CAtomicType"
+
+-- | extractStructureUnion
+--
+extractStructureUnion :: AST.CStructureUnion a -> Either ParseError T.Text
+extractStructureUnion = undefined

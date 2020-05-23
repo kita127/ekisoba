@@ -1,6 +1,6 @@
 /* Variable definition */
-int hoge;
-char fuga = 'k';
+int var_non_init;
+char var_c = 'k';
 char var_a, Var_b = 100;
 static unsigned int var_s_uint = 555;
 char var_c;
@@ -28,6 +28,12 @@ char ***var_ppp;
 static int var_sti;
 const int var_consi;
 volatile int var_voli;
+
+struct St_tag {
+  int menber_i;
+  char menber_c;
+};
+struct St_tag str_var;
 
 /* Expression Initializer */
 int var_exp = 100;
