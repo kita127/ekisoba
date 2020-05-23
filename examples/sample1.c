@@ -25,10 +25,14 @@ char *var_p;
 char **var_pp;
 char ***var_ppp;
 
+static int var_sti;
+const int var_consi;
+volatile int var_voli;
+
 /* Expression Initializer */
-int var_exp = 1 + 1;
-int var_exp2 = ((1 + 2) + (3 - 4)) * ((5 + 6) - (7 - 8));
+int var_exp = 100;
+int var_exp2 = 1 + 1;
+int var_exp3 = ((1 + 2) + (3 - 4)) * ((5 + 6) - (7 - 8));
 
 /* Function definition */
 void func(void) {}
-

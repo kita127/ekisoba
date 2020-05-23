@@ -330,9 +330,23 @@ extractVarNameDeclrSpec (ID.Ident name n a) = return . T.pack $ name
 extractVarType :: AST.CDeclarationSpecifier Node.NodeInfo -> Either ParseError T.Text
 extractVarType (AST.CStorageSpec x) = extractStorageSpecifier x
 extractVarType (AST.CTypeSpec    x) = extractVarTypeSpec x
-extractVarType (AST.CTypeQual    x) = failParse "error extractVarType pattern match CTypeQual"
+extractVarType (AST.CTypeQual    x) = extractTypeQualifier x
 extractVarType (AST.CFunSpec     x) = failParse "error extractVarType pattern match CFunSpec"
 extractVarType (AST.CAlignSpec   x) = failParse "error extractVarType pattern match CLignSpec"
+
+-- | extractTypeQualifier
+--
+extractTypeQualifier :: AST.CTypeQualifier a -> Either ParseError T.Text
+extractTypeQualifier (AST.CConstQual a   ) = return "const"
+extractTypeQualifier (AST.CVolatQual a   ) = return "volatile"
+extractTypeQualifier (AST.CRestrQual a   ) = failParse "CRestrQual"
+extractTypeQualifier (AST.CAtomicQual a  ) = failParse "CAtomicQual"
+extractTypeQualifier (AST.CAttrQual x    ) = failParse "CAttrQual"
+extractTypeQualifier (AST.CNullableQual a) = failParse "CNullableQual"
+extractTypeQualifier (AST.CNonnullQual a ) = failParse "CNonnullQual"
+extractTypeQualifier (AST.CClRdOnlyQual a) = failParse "CClRdOnlyQual"
+extractTypeQualifier (AST.CClWrOnlyQual a) = failParse "CClWrOnlyQual"
+
 
 -- | extractStorageSpecifier
 --

@@ -96,6 +96,11 @@ char ***ppp_var;|]
                   , [r|char * p_var;
 char * * pp_var;
 char * * * ppp_var;|])
+                , ("test variable definition 4", "./hoge.c"
+                  , [r|static int hoge; const int fuga; volatile int piyo;|]
+                  , [r|static int hoge;
+const int fuga;
+volatile int piyo;|])
                 ]
 
 testFunctionDefinition :: Test
