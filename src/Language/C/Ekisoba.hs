@@ -24,6 +24,8 @@ import qualified Language.C.System.GCC       as GCC
 newtype ParseError = ParseError {
                      message :: String
                    }
+type EkiParser a = Either ParseError a
+
 data Preprocessor = GCC
 
 -- | newParseError
@@ -33,14 +35,14 @@ newParseError s = ParseError { message = s }
 
 -- | failParse
 --
-failParse :: String -> Either ParseError a
+failParse :: String -> EkiParser a
 failParse = Left . newParseError
 
 -- | preprocess (if necessary) and parse a C source file
 --
 --   > Synopsis: parseCFile preprocesssor cpp-opts file
 --   > Example:  parseCFile GCC ["-I/usr/include/gtk-2.0"] my-gtk-exts.c
-parseCFile :: Preprocessor -> [String] -> FilePath -> IO (Either ParseError EAST.Object)
+parseCFile :: Preprocessor -> [String] -> FilePath -> IO (EkiParser EAST.Object)
 parseCFile GCC opts file = do
     r <- C.parseCFile (GCC.newGCC "gcc") Nothing opts file
     case r of
@@ -50,7 +52,7 @@ parseCFile GCC opts file = do
 
 -- | translate
 --
-translate :: AST.CTranslUnit -> Either ParseError EAST.Object
+translate :: AST.CTranslUnit -> EkiParser EAST.Object
 translate (AST.CTranslUnit xs nodeInfo) = do
     n <- extractNodeName nodeInfo
     p <- extractProgram xs
@@ -61,13 +63,13 @@ translate (AST.CTranslUnit xs nodeInfo) = do
 
 -- | extractNodeName
 --
-extractNodeName :: Node.NodeInfo -> Either ParseError T.Text
+extractNodeName :: Node.NodeInfo -> EkiParser T.Text
 extractNodeName (Node.OnlyPos _ _)    = failParse "Couldn't extract node name"
 extractNodeName (Node.NodeInfo p _ _) = Right . T.pack . Pos.posFile $ p
 
 -- | extractProgram
 --
-extractProgram :: [AST.CExternalDeclaration Node.NodeInfo] -> Either ParseError EAST.Program
+extractProgram :: [AST.CExternalDeclaration Node.NodeInfo] -> EkiParser EAST.Program
 extractProgram xs = do
     ss <- Ext.concatMapM extractStatement xs
     return EAST.Program {
@@ -76,14 +78,14 @@ extractProgram xs = do
 
 -- | extractStatement
 --
-extractStatement :: AST.CExternalDeclaration Node.NodeInfo -> Either ParseError [EAST.Statement]
+extractStatement :: AST.CExternalDeclaration Node.NodeInfo -> EkiParser [EAST.Statement]
 extractStatement (AST.CDeclExt x  ) = extractDeclaration x
 extractStatement (AST.CFDefExt x  ) = extractCFunctionDef x
 extractStatement (AST.CAsmExt  x a) = failParse "unimplemented"
 
 -- | extractCFunctionDef
 --
-extractCFunctionDef :: AST.CFunctionDef Node.NodeInfo -> Either ParseError [EAST.Statement]
+extractCFunctionDef :: AST.CFunctionDef Node.NodeInfo -> EkiParser [EAST.Statement]
 extractCFunctionDef (AST.CFunDef xs y zs q a) = do
     ts <- mapM extractVarType xs
     n <- extractVarNameDeclr y
@@ -98,7 +100,7 @@ extractCFunctionDef (AST.CFunDef xs y zs q a) = do
 
 -- | extractBody
 --
-extractBody :: AST.CStatement Node.NodeInfo -> Either ParseError EAST.Statement
+extractBody :: AST.CStatement Node.NodeInfo -> EkiParser EAST.Statement
 extractBody (AST.CLabel ident x ys a  ) = failParse "unimplemented"
 extractBody (AST.CCase x ys a         ) = failParse "unimplemented"
 extractBody (AST.CCases x y z a       ) = failParse "unimplemented"
@@ -119,7 +121,7 @@ extractBody (AST.CAsm x a             ) = failParse "unimplemented"
 
 -- | extractCompBlockItem
 --
-extractCompBlockItem :: AST.CCompoundBlockItem Node.NodeInfo -> Either ParseError [EAST.Statement]
+extractCompBlockItem :: AST.CCompoundBlockItem Node.NodeInfo -> EkiParser [EAST.Statement]
 extractCompBlockItem (AST.CBlockStmt x   ) = failParse "unimplemented"
 extractCompBlockItem (AST.CBlockDecl x   ) = extractDeclaration x
 extractCompBlockItem (AST.CNestedFunDef x) = failParse "unimplemented"
@@ -129,13 +131,13 @@ extractCompBlockItem (AST.CNestedFunDef x) = failParse "unimplemented"
 
 -- | extractArgs
 --
-extractArgs :: AST.CDeclarator Node.NodeInfo -> Either ParseError EAST.Statement
+extractArgs :: AST.CDeclarator Node.NodeInfo -> EkiParser EAST.Statement
 extractArgs (AST.CDeclr ident xs y zs a) =
     extractArgsDerivedDec xs >>= (\vs -> return EAST.Argument{EAST.vars = vs})
 
 -- | extractArgsDerivedDec
 --
-extractArgsDerivedDec :: [AST.CDerivedDeclarator Node.NodeInfo] -> Either ParseError [EAST.Statement]
+extractArgsDerivedDec :: [AST.CDerivedDeclarator Node.NodeInfo] -> EkiParser [EAST.Statement]
 extractArgsDerivedDec ((AST.CPtrDeclr xs a  ):_) = failParse "unimplemented"
 extractArgsDerivedDec ((AST.CArrDeclr xs y a):_) = failParse "unimplemented"
 extractArgsDerivedDec ((AST.CFunDeclr (Right (xs, bool)) ys a):_) = Ext.concatMapM extractDeclaration xs
@@ -143,7 +145,7 @@ extractArgsDerivedDec _ = undefined
 
 -- | extractDeclaration
 --
-extractDeclaration :: AST.CDeclaration Node.NodeInfo -> Either ParseError [EAST.Statement]
+extractDeclaration :: AST.CDeclaration Node.NodeInfo -> EkiParser [EAST.Statement]
 extractDeclaration (AST.CDecl xs ys a)       = extractVarDef xs ys
 extractDeclaration (AST.CStaticAssert x y a) = failParse "unimplemented"
 
@@ -155,10 +157,10 @@ extractVarDef ::
       , Maybe (AST.CInitializer Node.NodeInfo)
       , Maybe (AST.CExpression Node.NodeInfo))
       ]
-   -> Either ParseError [EAST.Statement]
+   -> EkiParser [EAST.Statement]
 extractVarDef xs ys = do
     ts <- mapM extractVarType xs
-    if ts == ["void"]
+    if isVoid (head ts)
         then return [ EAST.VariableDefinition {
                         EAST.name = ""
                       , EAST.typ = ts
@@ -166,6 +168,8 @@ extractVarDef xs ys = do
                     ]
         else mapM (\y -> do
                 n <- extractVarName y
+-- TODO
+-- 2 回 extractVarType をしている
                 ts <- mapM extractVarType xs
                 ps <- Ext.concatMapM extractPointer ys
                 v <- extractInitValue y
@@ -176,6 +180,12 @@ extractVarDef xs ys = do
                     }
                 ) ys
 
+-- | isVoid
+--
+isVoid :: EAST.Statement -> Bool
+isVoid EAST.Type{name = n} = if n == "void" then True else False
+isVoid _                   = False
+
 -- | extractPointer
 --
 extractPointer ::
@@ -183,19 +193,19 @@ extractPointer ::
       , Maybe (AST.CInitializer Node.NodeInfo)
       , Maybe (AST.CExpression Node.NodeInfo)
       )
-   -> Either ParseError [T.Text]
+   -> EkiParser [EAST.Statement]
 extractPointer (Just x, y, z) = extractPointerCDeclarator x
 extractPointer _              = failParse "error extractPointer"
 
 -- | extractPointerCDeclarator
 --
-extractPointerCDeclarator :: AST.CDeclarator a -> Either ParseError [T.Text]
+extractPointerCDeclarator :: AST.CDeclarator a -> EkiParser [EAST.Statement]
 extractPointerCDeclarator (AST.CDeclr ident xs y zs a) = mapM extractPointerCDerivedDeclarator $ xs
 
 -- | extractPointerCDerivedDeclarator
 --
-extractPointerCDerivedDeclarator :: AST.CDerivedDeclarator a -> Either ParseError T.Text
-extractPointerCDerivedDeclarator (AST.CPtrDeclr xs a) = return "*"
+extractPointerCDerivedDeclarator :: AST.CDerivedDeclarator a -> EkiParser EAST.Statement
+extractPointerCDerivedDeclarator (AST.CPtrDeclr xs a) = return $ newType "*"
 extractPointerCDerivedDeclarator (AST.CArrDeclr xs y a) = failParse "error CArrDeclr"
 extractPointerCDerivedDeclarator (AST.CFunDeclr x ys a) = failParse "error CFunDeclr"
 
@@ -207,19 +217,19 @@ extractInitValue ::
      , Maybe (AST.CInitializer Node.NodeInfo)
      , Maybe (AST.CExpression Node.NodeInfo)
      )
-  -> Either ParseError (Maybe EAST.Expression)
+  -> EkiParser (Maybe EAST.Expression)
 extractInitValue (x, Nothing, z) = return Nothing
 extractInitValue (x, Just y, z)  = extractInitializer y >>= return . Just
 
 -- | extractInitializer
 --
-extractInitializer :: AST.CInitializer Node.NodeInfo -> Either ParseError EAST.Expression
+extractInitializer :: AST.CInitializer Node.NodeInfo -> EkiParser EAST.Expression
 extractInitializer (AST.CInitExpr x a ) = extractInitExpression x
 extractInitializer (AST.CInitList x a ) = undefined
 
 -- | extractInitExpression
 --
-extractInitExpression :: AST.CExpression Node.NodeInfo -> Either ParseError EAST.Expression
+extractInitExpression :: AST.CExpression Node.NodeInfo -> EkiParser EAST.Expression
 extractInitExpression (AST.CComma xs a)              = undefined
 extractInitExpression (AST.CAssign x y z a)          = undefined
 extractInitExpression (AST.CCond x y z a)            = undefined
@@ -249,7 +259,7 @@ extractBinaryOp ::
     AST.CBinaryOp
  -> (AST.CExpression Node.NodeInfo)
  -> (AST.CExpression Node.NodeInfo)
- -> Either ParseError EAST.Expression
+ -> EkiParser EAST.Expression
 extractBinaryOp AST.CMulOp left right = newInfixExpression left "*" right
 extractBinaryOp AST.CDivOp left right = newInfixExpression left "/" right
 extractBinaryOp AST.CRmdOp left right = failParse "Rmd Op"
@@ -275,7 +285,7 @@ newInfixExpression ::
      (AST.CExpression Node.NodeInfo)
   -> T.Text
   -> (AST.CExpression Node.NodeInfo)
-  -> Either ParseError EAST.Expression
+  -> EkiParser EAST.Expression
 newInfixExpression left op right = do
     l <- extractInitExpression left
     r <- extractInitExpression right
@@ -288,7 +298,7 @@ newInfixExpression left op right = do
 
 -- | extractConstant
 --
-extractConstant :: AST.CConstant Node.NodeInfo -> Either ParseError EAST.Expression
+extractConstant :: AST.CConstant Node.NodeInfo -> EkiParser EAST.Expression
 extractConstant (AST.CIntConst n a)   = return EAST.IntegerLiteral{EAST.intVal = Const.getCInteger n}
 extractConstant (AST.CCharConst x a)  = extractChar $ x
 extractConstant (AST.CFloatConst x a) = undefined
@@ -296,7 +306,7 @@ extractConstant (AST.CStrConst x a)   = undefined
 
 -- | extractChar
 --
-extractChar :: Const.CChar -> Either ParseError EAST.Expression
+extractChar :: Const.CChar -> EkiParser EAST.Expression
 extractChar (Const.CChar c b)   = return EAST.CharLiteral{EAST.charVal = c}
 extractChar (Const.CChars cs b) = undefined
 
@@ -308,26 +318,26 @@ extractVarName ::
      , Maybe (AST.CInitializer Node.NodeInfo)
      , Maybe (AST.CExpression Node.NodeInfo)
      )
-  -> Either ParseError T.Text
+  -> EkiParser T.Text
 extractVarName (Just x, y, z) = extractVarNameDeclr x
 extractVarName  _             = failParse "error extractVarName"
 
 -- | extractVarNameDeclr
 --
-extractVarNameDeclr :: AST.CDeclarator Node.NodeInfo -> Either ParseError T.Text
+extractVarNameDeclr :: AST.CDeclarator Node.NodeInfo -> EkiParser T.Text
 extractVarNameDeclr (AST.CDeclr (Just ident) xs y zs a) = extractVarNameDeclrSpec ident
 extractVarNameDeclr _ = failParse "error extractVarNameDeclr"
 
 -- | extractVarNameDeclrSpec
 --
-extractVarNameDeclrSpec :: ID.Ident -> Either ParseError T.Text
+extractVarNameDeclrSpec :: ID.Ident -> EkiParser T.Text
 extractVarNameDeclrSpec (ID.Ident name n a) = return . T.pack $ name
 
 
 
 -- | extractVarType
 --
-extractVarType :: AST.CDeclarationSpecifier Node.NodeInfo -> Either ParseError T.Text
+extractVarType :: AST.CDeclarationSpecifier Node.NodeInfo -> EkiParser EAST.Statement
 extractVarType (AST.CStorageSpec x) = extractStorageSpecifier x
 extractVarType (AST.CTypeSpec    x) = extractVarTypeSpec x
 extractVarType (AST.CTypeQual    x) = extractTypeQualifier x
@@ -336,9 +346,9 @@ extractVarType (AST.CAlignSpec   x) = failParse "error extractVarType pattern ma
 
 -- | extractTypeQualifier
 --
-extractTypeQualifier :: AST.CTypeQualifier a -> Either ParseError T.Text
-extractTypeQualifier (AST.CConstQual a   ) = return "const"
-extractTypeQualifier (AST.CVolatQual a   ) = return "volatile"
+extractTypeQualifier :: AST.CTypeQualifier a -> EkiParser EAST.Statement
+extractTypeQualifier (AST.CConstQual a   ) = return $ newType "const"
+extractTypeQualifier (AST.CVolatQual a   ) = return $ newType "volatile"
 extractTypeQualifier (AST.CRestrQual a   ) = failParse "CRestrQual"
 extractTypeQualifier (AST.CAtomicQual a  ) = failParse "CAtomicQual"
 extractTypeQualifier (AST.CAttrQual x    ) = failParse "CAttrQual"
@@ -350,10 +360,10 @@ extractTypeQualifier (AST.CClWrOnlyQual a) = failParse "CClWrOnlyQual"
 
 -- | extractStorageSpecifier
 --
-extractStorageSpecifier :: AST.CStorageSpecifier Node.NodeInfo -> Either ParseError T.Text
+extractStorageSpecifier :: AST.CStorageSpecifier Node.NodeInfo -> EkiParser EAST.Statement
 extractStorageSpecifier (AST.CAuto a    ) = failParse "error extractStorageSpecifier match CAuto"
 extractStorageSpecifier (AST.CRegister a) = failParse "error extractStorageSpecifier match CRegister"
-extractStorageSpecifier (AST.CStatic a  ) = return "static"
+extractStorageSpecifier (AST.CStatic a  ) = return $ newType "static"
 extractStorageSpecifier (AST.CExtern a  ) = failParse "error extractStorageSpecifier match CExtern"
 extractStorageSpecifier (AST.CTypedef a ) = failParse "error extractStorageSpecifier match CTypedef"
 extractStorageSpecifier (AST.CThread a  ) = failParse "error extractStorageSpecifier match CThread"
@@ -364,16 +374,16 @@ extractStorageSpecifier (AST.CClLocal a ) = failParse "error extractStorageSpeci
 
 -- | extractVarTypeSpec
 --
-extractVarTypeSpec :: AST.CTypeSpecifier Node.NodeInfo -> Either ParseError T.Text
-extractVarTypeSpec (AST.CVoidType a                   ) = return "void"
-extractVarTypeSpec (AST.CCharType a                   ) = return "char"
-extractVarTypeSpec (AST.CShortType a                  ) = return "short"
-extractVarTypeSpec (AST.CIntType a                    ) = return "int"
-extractVarTypeSpec (AST.CLongType a                   ) = return "long"
-extractVarTypeSpec (AST.CFloatType a                  ) = return "float"
-extractVarTypeSpec (AST.CDoubleType a                 ) = return "double"
-extractVarTypeSpec (AST.CSignedType a                 ) = return "signed"
-extractVarTypeSpec (AST.CUnsigType a                  ) = return "unsigned"
+extractVarTypeSpec :: AST.CTypeSpecifier Node.NodeInfo -> EkiParser EAST.Statement
+extractVarTypeSpec (AST.CVoidType a                   ) = return $ newType "void"
+extractVarTypeSpec (AST.CCharType a                   ) = return $ newType "char"
+extractVarTypeSpec (AST.CShortType a                  ) = return $ newType "short"
+extractVarTypeSpec (AST.CIntType a                    ) = return $ newType "int"
+extractVarTypeSpec (AST.CLongType a                   ) = return $ newType "long"
+extractVarTypeSpec (AST.CFloatType a                  ) = return $ newType "float"
+extractVarTypeSpec (AST.CDoubleType a                 ) = return $ newType "double"
+extractVarTypeSpec (AST.CSignedType a                 ) = return $ newType "signed"
+extractVarTypeSpec (AST.CUnsigType a                  ) = return $ newType "unsigned"
 extractVarTypeSpec (AST.CBoolType a                   ) = failParse "unimplemented BoolType"
 extractVarTypeSpec (AST.CComplexType a                ) = failParse "unimplemented CComplexType"
 extractVarTypeSpec (AST.CInt128Type a                 ) = failParse "unimplemented CInt128Type"
@@ -385,7 +395,15 @@ extractVarTypeSpec (AST.CTypeOfExpr x a )               = failParse "unimplement
 extractVarTypeSpec (AST.CTypeOfType x a)                = failParse "unimplemented CTypeOfType"
 extractVarTypeSpec (AST.CAtomicType x a)                = failParse "unimplemented CAtomicType"
 
+-- | newType
+--
+newType :: T.Text -> EAST.Statement
+newType n = EAST.Type {name = n}
+
 -- | extractStructureUnion
 --
-extractStructureUnion :: AST.CStructureUnion a -> Either ParseError T.Text
-extractStructureUnion = undefined
+extractStructureUnion :: AST.CStructureUnion a -> EkiParser EAST.Statement
+extractStructureUnion (AST.CStruct AST.CStructTag (Just ident) x ys a) = failParse "CStructTag"
+extractStructureUnion (AST.CStruct AST.CUnionTag  ident x ys a) = failParse "CUnionTag"
+extractStructureUnion _ = failParse "StructureUnion error"
+

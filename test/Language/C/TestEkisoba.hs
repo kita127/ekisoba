@@ -101,6 +101,17 @@ char * * * ppp_var;|])
                   , [r|static int hoge;
 const int fuga;
 volatile int piyo;|])
+                , ("test variable definition struct", "./hoge.c"
+                  , [r|struct St_tag {
+  int menber_i;
+  char menber_c;
+};
+|]
+                  , [r|struct St_tag {
+    int menber_i;
+    char menber_c;
+};
+|])
                 ]
 
 testFunctionDefinition :: Test

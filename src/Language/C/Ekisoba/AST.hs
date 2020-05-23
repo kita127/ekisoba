@@ -34,13 +34,13 @@ instance Stringble Program where
 
 data Statement = VariableDefinition {
                    name  :: T.Text
-                 , typ   :: [T.Text]
+                 , typ   :: [Statement] -- only Type
                  , value :: Maybe Expression
                  }
                | FunctionDefinition {
                    name    :: T.Text
-                 , retType :: [T.Text]
-                 , args    :: Statement  -- only Argument
+                 , retType :: [Statement] -- only Type
+                 , args    :: Statement    -- only Argument
                  , body    :: Statement    -- only BlockStatement
                  }
                | Argument {
@@ -49,17 +49,25 @@ data Statement = VariableDefinition {
                | BlockStatement {
                    statements :: [Statement]
                  }
+               | Type {
+                   name :: T.Text
+                 }
+               | StructDeclaration {
+                   name    :: T.Text
+                 , menbers :: [Statement]  -- only VariableDefinition
+                 }
                deriving (Eq, Show)
 
 instance Stringble Statement where
     string var@(VariableDefinition{}) = variableToStr var <> ";"
     string FunctionDefinition{name = n, retType = ts, args = ag, body = b} =
-        T.intercalate " " ts <> " " <> n <> "(" <> string ag <> ")\n"
+        T.intercalate " " (map string ts) <> " " <> n <> "(" <> string ag <> ")\n"
             <>  string b
     string Argument{vars = vs} =
-        if map typ vs == [["void"]]
+        if map (map string . typ) vs == [["void"]]
             then "void"
             else T.intercalate ", " (map variableToStr vs)
+    string Type{name = n} = n
     string b@(BlockStatement{}) = nestBlock 4 b
       where
         nestBlock :: Int -> Statement -> T.Text
@@ -100,7 +108,7 @@ valueToStr Nothing  = ""
 
 variableToStr :: Statement -> T.Text
 variableToStr VariableDefinition{name = n, typ = ts, value = v} =
-        T.intercalate " " ts <> " " <> n <> valueToStr v
+        T.intercalate " " (map string ts) <> " " <> n <> valueToStr v
 
 $(TH.deriveJSON TH.defaultOptions ''Object)
 $(TH.deriveJSON TH.defaultOptions ''Program)
