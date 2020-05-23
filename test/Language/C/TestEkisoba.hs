@@ -20,6 +20,7 @@ main = do
     runTestTT $ TestList [ testSample
                          , testVariableDefinition
                          , testFunctionDefinition
+                         , testExpression
                          ]
     return ()
 
@@ -122,3 +123,19 @@ cToOriginAst file text = case Pars.parseC text (Pos.initPos file) of
         Left _  -> error "parse error"
         Right r -> r
 
+testExpression :: Test
+testExpression = TestList $ map helper testTable
+  where
+    testTable = [ ("test expression add", "./hoge.c"
+                  , [r|int hoge = 1 + 2;|]
+                  , [r|int hoge = 1 + 2;|])
+                , ("test expression sub", "./hoge.c"
+                  , [r|int hoge = 1 - 2;|]
+                  , [r|int hoge = 1 - 2;|])
+                , ("test expression mul", "./hoge.c"
+                  , [r|int hoge = 1 * 2;|]
+                  , [r|int hoge = 1 * 2;|])
+                , ("test expression div", "./hoge.c"
+                  , [r|int hoge = 2 / 1;|]
+                  , [r|int hoge = 2 / 1;|])
+                ]

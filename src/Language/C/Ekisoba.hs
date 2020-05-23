@@ -250,31 +250,39 @@ extractBinaryOp ::
  -> (AST.CExpression Node.NodeInfo)
  -> (AST.CExpression Node.NodeInfo)
  -> Either ParseError EAST.Expression
-extractBinaryOp AST.CMulOp left right = undefined
-extractBinaryOp AST.CDivOp left right = undefined
-extractBinaryOp AST.CRmdOp left right = undefined
-extractBinaryOp AST.CAddOp left right = do
+extractBinaryOp AST.CMulOp left right = newInfixExpression left "*" right
+extractBinaryOp AST.CDivOp left right = newInfixExpression left "/" right
+extractBinaryOp AST.CRmdOp left right = failParse "Rmd Op"
+extractBinaryOp AST.CAddOp left right = newInfixExpression left "+" right
+extractBinaryOp AST.CSubOp left right = newInfixExpression left "-" right
+extractBinaryOp AST.CShlOp left right = failParse "Shl Op"
+extractBinaryOp AST.CShrOp left right = failParse "Shr Op"
+extractBinaryOp AST.CLeOp  left right = failParse "Le Op"
+extractBinaryOp AST.CGrOp  left right = failParse "Gr Op"
+extractBinaryOp AST.CLeqOp left right = failParse "Leq Op"
+extractBinaryOp AST.CGeqOp left right = failParse "Geq Op"
+extractBinaryOp AST.CEqOp  left right = failParse "Eq Op"
+extractBinaryOp AST.CNeqOp left right = failParse "Neq Op"
+extractBinaryOp AST.CAndOp left right = failParse "And Op"
+extractBinaryOp AST.CXorOp left right = failParse "Xor Op"
+extractBinaryOp AST.COrOp  left right = failParse "Or Op"
+extractBinaryOp AST.CLndOp left right = failParse "Lnd Op"
+extractBinaryOp AST.CLorOp left right = failParse "Lor Op"
+
+-- | newInfixExpression
+--
+newInfixExpression ::
+     (AST.CExpression Node.NodeInfo)
+  -> T.Text
+  -> (AST.CExpression Node.NodeInfo)
+  -> Either ParseError EAST.Expression
+newInfixExpression left op right = do
     l <- extractInitExpression left
     r <- extractInitExpression right
     return EAST.InfixExpression {
              EAST.left = l
-           , EAST.operator = "+"
+           , EAST.operator = op
            , EAST.right = r}
-extractBinaryOp AST.CSubOp left right = undefined
-extractBinaryOp AST.CShlOp left right = undefined
-extractBinaryOp AST.CShrOp left right = undefined
-extractBinaryOp AST.CLeOp  left right = undefined
-extractBinaryOp AST.CGrOp  left right = undefined
-extractBinaryOp AST.CLeqOp left right = undefined
-extractBinaryOp AST.CGeqOp left right = undefined
-extractBinaryOp AST.CEqOp  left right = undefined
-extractBinaryOp AST.CNeqOp left right = undefined
-extractBinaryOp AST.CAndOp left right = undefined
-extractBinaryOp AST.CXorOp left right = undefined
-extractBinaryOp AST.COrOp  left right = undefined
-extractBinaryOp AST.CLndOp left right = undefined
-extractBinaryOp AST.CLorOp left right = undefined
-
 
 
 
