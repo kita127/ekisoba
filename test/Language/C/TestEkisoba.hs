@@ -96,10 +96,6 @@ char ***ppp_var;|]
                   , [r|char * p_var;
 char * * pp_var;
 char * * * ppp_var;|])
-                , ("test variable definition expression 1", "./hoge.c"
-                  , [r|int expVar = 1 + 1;|]
-                  , [r|int expVar = 1 + 1;|]
-                  )
                 ]
 
 testFunctionDefinition :: Test
@@ -138,4 +134,10 @@ testExpression = TestList $ map helper testTable
                 , ("test expression div", "./hoge.c"
                   , [r|int hoge = 2 / 1;|]
                   , [r|int hoge = 2 / 1;|])
+                , ("test expression nest 1", "./hoge.c"
+                  , [r|int hoge = (1 + 2) * (3 - 4);|]
+                  , [r|int hoge = (1 + 2) * (3 - 4);|])
+                , ("test expression nest 2", "./hoge.c"
+                  , [r|int hoge = ((1 + 2) + (3 - 4)) * ((5 + 6) - (7 - 8));|]
+                  , [r|int hoge = ((1 + 2) + (3 - 4)) * ((5 + 6) - (7 - 8));|])
                 ]

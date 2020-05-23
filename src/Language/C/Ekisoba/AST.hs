@@ -83,7 +83,14 @@ instance Stringble Expression where
     string IntegerLiteral{intVal = v} = T.pack . show $ v
     string CharLiteral{charVal = c}   = "'" <> T.singleton c <> "'"
     string InfixExpression{left = l, operator = op, right = r}
-        = string l <> " " <> op <> " " <> string r
+        = stringInParenthese l <> " " <> op <> " " <> stringInParenthese r
+
+-- | stringInParenthese
+--
+stringInParenthese :: Expression -> T.Text
+stringInParenthese  InfixExpression{left = l, operator = op, right = r}
+    = "(" <> stringInParenthese l <> " " <> op <> " " <> stringInParenthese r <> ")"
+stringInParenthese x = string x
 
 nesting nest x = T.pack (replicate nest ' ') <> string x
 

@@ -1,3 +1,4 @@
+/* Variable definition */
 int hoge;
 char fuga = 'k';
 char var_a, Var_b = 100;
@@ -24,7 +25,10 @@ char *var_p;
 char **var_pp;
 char ***var_ppp;
 
+/* Expression Initializer */
 int var_exp = 1 + 1;
+int var_exp2 = ((1 + 2) + (3 - 4)) * ((5 + 6) - (7 - 8));
 
+/* Function definition */
 void func(void) {}
 
