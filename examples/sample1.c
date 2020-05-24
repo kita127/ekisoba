@@ -29,11 +29,15 @@ static int var_sti;
 const int var_consi;
 volatile int var_voli;
 
+/* Struct */
 struct St_tag {
   int menber_i;
   char menber_c;
 };
 struct St_tag str_var;
+
+typedef struct St_tag St;
+St str_var2;
 
 /* Expression Initializer */
 int var_exp = 100;

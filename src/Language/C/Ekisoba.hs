@@ -28,6 +28,8 @@ type EkiParser a = Either ParseError a
 
 data Preprocessor = GCC
 
+data Grammer = StructureDecl | VarDef | Typedef
+
 -- | newParseError
 --
 newParseError :: String -> ParseError
@@ -159,20 +161,43 @@ extractVarDefOrStructure ::
       ]
    -> EkiParser [EAST.Statement]
 extractVarDefOrStructure xs ys =
-    if isStructureDecl (head xs) ys
-        then extractStrUniDecl (head xs) >>= return . (:[])
-        else extractVarDef xs ys
+    case searchGrammer (head xs) ys of
+        StructureDecl -> extractStrUniDecl (head xs) >>= return . (:[])
+        Typedef       -> extractTypedef xs ys
+        VarDef        -> extractVarDef xs ys
+
+-- | extractTypedef
+--
+extractTypedef ::
+      [AST.CDeclarationSpecifier Node.NodeInfo]
+   -> [(Maybe (AST.CDeclarator Node.NodeInfo)
+      , Maybe (AST.CInitializer Node.NodeInfo)
+      , Maybe (AST.CExpression Node.NodeInfo))
+      ]
+   -> EkiParser [EAST.Statement]
+extractTypedef xs@((AST.CStorageSpec (AST.CTypedef a)):_) (y:ys) = do
+    n <- extractVarName y
+    ts <- mapM extractVarType xs
+    return [EAST.TypdefDeclaration {
+             EAST.name = n
+           , EAST.typ = tail ts  -- Discarded beginning because no matter
+           }]
+extractTypedef _ _ = failParse "error extractTypedef"
+
+
 
 -- | extractStrUniDecl
 --
 extractStrUniDecl :: AST.CDeclarationSpecifier Node.NodeInfo -> EkiParser EAST.Statement
 extractStrUniDecl (AST.CTypeSpec x) = extractVarTypeSpec x
 
--- | isStructureDecl
+
+-- | searchGrammer
 --
-isStructureDecl :: AST.CDeclarationSpecifier Node.NodeInfo -> [a] -> Bool
-isStructureDecl (AST.CTypeSpec (AST.CSUType _ a)) [] = True
-isStructureDecl _ _                                  = False
+searchGrammer :: AST.CDeclarationSpecifier Node.NodeInfo -> [a] -> Grammer
+searchGrammer (AST.CTypeSpec (AST.CSUType _ a)) []  = StructureDecl
+searchGrammer (AST.CStorageSpec (AST.CTypedef a)) _ = Typedef
+searchGrammer _ _                                   = VarDef
 
 -- | extractVarDef
 --
@@ -390,7 +415,7 @@ extractStorageSpecifier (AST.CAuto a    ) = failParse "error extractStorageSpeci
 extractStorageSpecifier (AST.CRegister a) = failParse "error extractStorageSpecifier match CRegister"
 extractStorageSpecifier (AST.CStatic a  ) = return $ newType "static"
 extractStorageSpecifier (AST.CExtern a  ) = failParse "error extractStorageSpecifier match CExtern"
-extractStorageSpecifier (AST.CTypedef a ) = failParse "error extractStorageSpecifier match CTypedef"
+extractStorageSpecifier (AST.CTypedef a ) = return $ EAST.ASTStmtInfo "typdef qualifier"
 extractStorageSpecifier (AST.CThread a  ) = failParse "error extractStorageSpecifier match CThread"
 extractStorageSpecifier (AST.CClKernel a) = failParse "error extractStorageSpecifier match CClKernel"
 extractStorageSpecifier (AST.CClGlobal a) = failParse "error extractStorageSpecifier match CClGlobal"

@@ -56,6 +56,13 @@ data Statement = VariableDefinition {
                    name    :: T.Text
                  , menbers :: [Statement]  -- only VariableDefinition
                  }
+               | TypdefDeclaration {
+                   name    :: T.Text
+                 , typ :: [Statement]      -- only Type
+                 }
+               | ASTStmtInfo {                 -- 内部制御用の特に意味のない文
+                  info :: T.Text
+                 }
                deriving (Eq, Show)
 
 instance Stringble Statement where
@@ -70,6 +77,8 @@ instance Stringble Statement where
     string Type{name = n} = n
     string StructDeclaration{name = n, menbers = ms} =
         "struct " <> n <> " {\n" <> T.intercalate "\n" (map (nesting 4) ms) <> "\n};"
+    string TypdefDeclaration{name = n, typ = ts} =
+        "typedef " <> T.intercalate " " (map string ts) <> " " <> n <> ";"
     string b@(BlockStatement{}) = nestBlock 4 b
       where
         nestBlock :: Int -> Statement -> T.Text

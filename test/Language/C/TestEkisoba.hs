@@ -21,6 +21,7 @@ main = do
                          , testVariableDefinition
                          , testFunctionDefinition
                          , testExpression
+                         , testTypedef
                          ]
     return ()
 
@@ -156,4 +157,12 @@ testExpression = TestList $ map helper testTable
                 , ("test expression nest 2", "./hoge.c"
                   , [r|int hoge = ((1 + 2) + (3 - 4)) * ((5 + 6) - (7 - 8));|]
                   , [r|int hoge = ((1 + 2) + (3 - 4)) * ((5 + 6) - (7 - 8));|])
+                ]
+
+testTypedef :: Test
+testTypedef = TestList $ map helper testTable
+  where
+    testTable = [ ("test typedef 1", "./hoge.c"
+                  , [r|typedef int myint;|]
+                  , [r|typedef int myint;|])
                 ]
