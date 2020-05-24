@@ -163,6 +163,7 @@ testTypedef :: Test
 testTypedef = TestList $ map helper testTable
   where
     testTable = [ ("test typedef 1", "./hoge.c"
-                  , [r|typedef int myint;|]
-                  , [r|typedef int myint;|])
+                  , [r|typedef int myint; myint hoge;|]
+                  , [r|typedef int myint;
+myint hoge;|])
                 ]
