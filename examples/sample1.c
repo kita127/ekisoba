@@ -46,3 +46,9 @@ int var_exp3 = ((1 + 2) + (3 - 4)) * ((5 + 6) - (7 - 8));
 
 /* Function definition */
 void func(void) {}
+
+int add(int a, int b) {
+  int result;
+  result = a + b;
+  return result;
+}

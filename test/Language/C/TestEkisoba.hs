@@ -154,6 +154,16 @@ void func2(int a, char b)
 
 }|]
           )
+        , ( "test function definition 2"
+          , "./hoge.c"
+          , [r|int add(int a, int b){ int res; res = a + b; return res; }|]
+          , [r|int add(int a, int b)
+{
+    int res;
+    res = (a + b);
+    return res;
+}|]
+          )
         ]
 
 cToOriginAst :: FilePath -> IS.InputStream -> AST.CTranslUnit

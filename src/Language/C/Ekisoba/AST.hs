@@ -60,13 +60,19 @@ data Statement = VariableDefinition {
                    name    :: T.Text
                  , typ :: [Statement]      -- only Type
                  }
+               | ReturnStatement {
+                   value  :: Maybe Expression
+                 }
+               | ExpressionStatement {
+                   exp    :: Expression
+                 }
                | ASTStmtInfo {                 -- 内部制御用の特に意味のない文
                   info :: T.Text
                  }
                deriving (Eq, Show)
 
 instance Stringble Statement where
-    string var@(VariableDefinition{}) = variableToStr var <> ";"
+    string var@VariableDefinition{} = variableToStr var <> ";"
     string FunctionDefinition { name = n, retType = ts, args = ag, body = b } =
         T.intercalate " " (map string ts)
             <> " "
@@ -87,13 +93,20 @@ instance Stringble Statement where
             <> "\n};"
     string TypdefDeclaration { name = n, typ = ts } =
         "typedef " <> T.intercalate " " (map string ts) <> " " <> n <> ";"
-    string b@(BlockStatement{}) = nestBlock 4 b
+    string ReturnStatement { value = v } = case v of
+        Just v' -> "return " <> string v' <> ";"
+        Nothing -> "return;"
+    string ExpressionStatement { exp = e } = string e <> ";"
+    string b@BlockStatement{}              = nestBlock 4 b
       where
         nestBlock :: Int -> Statement -> T.Text
         nestBlock nest BlockStatement { statements = ss } =
             "{\n" <> T.intercalate "\n" (map (nesting nest) ss) <> "\n}"
 
-data Expression = IntegerLiteral {
+data Expression = Identifire {
+                    name :: T.Text
+                  }
+                | IntegerLiteral {
                     intVal :: Integer
                   }
                 | CharLiteral {
@@ -107,6 +120,7 @@ data Expression = IntegerLiteral {
                deriving (Eq, Show)
 
 instance Stringble Expression where
+    string Identifire { name = n }       = n
     string IntegerLiteral { intVal = v } = T.pack . show $ v
     string CharLiteral { charVal = c }   = "'" <> T.singleton c <> "'"
     string InfixExpression { left = l, operator = op, right = r } =
