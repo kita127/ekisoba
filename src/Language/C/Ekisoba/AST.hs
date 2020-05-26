@@ -2,17 +2,17 @@
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE TemplateHaskell       #-}
 module Language.C.Ekisoba.AST
-(
-  Object(..)
-, Program(..)
-, Statement(..)
-, Expression(..)
-, string
-) where
+    ( Object(..)
+    , Program(..)
+    , Statement(..)
+    , Expression(..)
+    , string
+    )
+where
 
-import qualified Data.Aeson    as Aes
-import qualified Data.Aeson.TH as TH
-import qualified Data.Text     as T
+import qualified Data.Aeson                    as Aes
+import qualified Data.Aeson.TH                 as TH
+import qualified Data.Text                     as T
 
 class Stringble a where
     string :: a -> T.Text
@@ -23,7 +23,7 @@ data Object = Object {
               } deriving (Eq, Show)
 
 instance Stringble Object where
-    string Object{name = n, program = p} = string p
+    string Object { name = n, program = p } = string p
 
 
 newtype Program = Program {statements :: [Statement]} deriving (Eq, Show)
@@ -67,23 +67,31 @@ data Statement = VariableDefinition {
 
 instance Stringble Statement where
     string var@(VariableDefinition{}) = variableToStr var <> ";"
-    string FunctionDefinition{name = n, retType = ts, args = ag, body = b} =
-        T.intercalate " " (map string ts) <> " " <> n <> "(" <> string ag <> ")\n"
-            <>  string b
-    string Argument{vars = vs} =
-        if map (map string . typ) vs == [["void"]]
-            then "void"
-            else T.intercalate ", " (map variableToStr vs)
-    string Type{name = n} = n
-    string StructDeclaration{name = n, menbers = ms} =
-        "struct " <> n <> " {\n" <> T.intercalate "\n" (map (nesting 4) ms) <> "\n};"
-    string TypdefDeclaration{name = n, typ = ts} =
+    string FunctionDefinition { name = n, retType = ts, args = ag, body = b } =
+        T.intercalate " " (map string ts)
+            <> " "
+            <> n
+            <> "("
+            <> string ag
+            <> ")\n"
+            <> string b
+    string Argument { vars = vs } = if map (map string . typ) vs == [["void"]]
+        then "void"
+        else T.intercalate ", " (map variableToStr vs)
+    string Type { name = n } = n
+    string StructDeclaration { name = n, menbers = ms } =
+        "struct "
+            <> n
+            <> " {\n"
+            <> T.intercalate "\n" (map (nesting 4) ms)
+            <> "\n};"
+    string TypdefDeclaration { name = n, typ = ts } =
         "typedef " <> T.intercalate " " (map string ts) <> " " <> n <> ";"
     string b@(BlockStatement{}) = nestBlock 4 b
       where
         nestBlock :: Int -> Statement -> T.Text
-        nestBlock nest BlockStatement{statements = ss} =
-                 "{\n" <> T.intercalate "\n" (map (nesting nest) ss) <> "\n}"
+        nestBlock nest BlockStatement { statements = ss } =
+            "{\n" <> T.intercalate "\n" (map (nesting nest) ss) <> "\n}"
 
 data Expression = IntegerLiteral {
                     intVal :: Integer
@@ -99,16 +107,22 @@ data Expression = IntegerLiteral {
                deriving (Eq, Show)
 
 instance Stringble Expression where
-    string IntegerLiteral{intVal = v} = T.pack . show $ v
-    string CharLiteral{charVal = c}   = "'" <> T.singleton c <> "'"
-    string InfixExpression{left = l, operator = op, right = r}
-        = stringInParenthese l <> " " <> op <> " " <> stringInParenthese r
+    string IntegerLiteral { intVal = v } = T.pack . show $ v
+    string CharLiteral { charVal = c }   = "'" <> T.singleton c <> "'"
+    string InfixExpression { left = l, operator = op, right = r } =
+        stringInParenthese l <> " " <> op <> " " <> stringInParenthese r
 
 -- | stringInParenthese
 --
 stringInParenthese :: Expression -> T.Text
-stringInParenthese  InfixExpression{left = l, operator = op, right = r}
-    = "(" <> stringInParenthese l <> " " <> op <> " " <> stringInParenthese r <> ")"
+stringInParenthese InfixExpression { left = l, operator = op, right = r } =
+    "("
+        <> stringInParenthese l
+        <> " "
+        <> op
+        <> " "
+        <> stringInParenthese r
+        <> ")"
 stringInParenthese x = string x
 
 nesting nest x = T.pack (replicate nest ' ') <> string x
@@ -118,8 +132,8 @@ valueToStr (Just v) = " = " <> string v
 valueToStr Nothing  = ""
 
 variableToStr :: Statement -> T.Text
-variableToStr VariableDefinition{name = n, typ = ts, value = v} =
-        T.intercalate " " (map string ts) <> " " <> n <> valueToStr v
+variableToStr VariableDefinition { name = n, typ = ts, value = v } =
+    T.intercalate " " (map string ts) <> " " <> n <> valueToStr v
 
 $(TH.deriveJSON TH.defaultOptions ''Object)
 $(TH.deriveJSON TH.defaultOptions ''Program)
