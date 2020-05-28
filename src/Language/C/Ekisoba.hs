@@ -141,12 +141,12 @@ extractBlockStatement (AST.CCases x y z a) =
 extractBlockStatement (AST.CDefault x a) =
     failParse "unimplemented extractBlockStatement 4"
 extractBlockStatement (AST.CExpr (Just x) a) = do
-    e <- extractInitExpression x
+    e <- extractExpression x
     return [EAST.ExpressionStatement { EAST.exp = e }]
 extractBlockStatement (AST.CCompound idents xs a) =
     failParse "unimplemented extractBlockStatement 6"
 extractBlockStatement (AST.CIf condition consequence Nothing a) = do
-    cond <- extractInitExpression condition
+    cond <- extractExpression condition
     cons <- extractBody consequence
     return
         [ EAST.IfStatement { EAST.condition   = cond
@@ -155,7 +155,7 @@ extractBlockStatement (AST.CIf condition consequence Nothing a) = do
                            }
         ]
 extractBlockStatement (AST.CIf condition consequence (Just alternative) a) = do
-    cond <- extractInitExpression condition
+    cond <- extractExpression condition
     cons <- extractBody consequence
     alt  <- extractBody alternative
     return
@@ -179,7 +179,7 @@ extractBlockStatement (AST.CCont a) =
 extractBlockStatement (AST.CBreak a) =
     failParse "unimplemented extractBlockStatement 14"
 extractBlockStatement (AST.CReturn (Just x) a) = do
-    e <- extractInitExpression x
+    e <- extractExpression x
     return [EAST.ReturnStatement { EAST.value = Just e }]
 extractBlockStatement (AST.CAsm x a) =
     failParse "unimplemented extractBlockStatement 16"
@@ -344,39 +344,39 @@ extractInitValue (x, Just y , z) = extractInitializer y >>= return . Just
 --
 extractInitializer
     :: AST.CInitializer Node.NodeInfo -> EkiParser EAST.Expression
-extractInitializer (AST.CInitExpr x a) = extractInitExpression x
+extractInitializer (AST.CInitExpr x a) = extractExpression x
 extractInitializer (AST.CInitList x a) = undefined
 
--- | extractInitExpression
+-- | extractExpression
 --
-extractInitExpression
+extractExpression
     :: AST.CExpression Node.NodeInfo -> EkiParser EAST.Expression
-extractInitExpression (AST.CComma xs a) = undefined
-extractInitExpression (AST.CAssign op left right a) =
+extractExpression (AST.CComma xs a) = undefined
+extractExpression (AST.CAssign op left right a) =
     extractAssignOp op left right
-extractInitExpression (AST.CCond x y z a) = undefined
-extractInitExpression (AST.CBinary op left right a) =
+extractExpression (AST.CCond x y z a) = undefined
+extractExpression (AST.CBinary op left right a) =
     extractBinaryOp op left right
-extractInitExpression (AST.CCast  x y a          ) = undefined
-extractInitExpression (AST.CUnary x y a          ) = undefined
-extractInitExpression (AST.CSizeofExpr  x a      ) = undefined
-extractInitExpression (AST.CSizeofType  x a      ) = undefined
-extractInitExpression (AST.CAlignofExpr x a      ) = undefined
-extractInitExpression (AST.CAlignofType x a      ) = undefined
-extractInitExpression (AST.CComplexReal x a      ) = undefined
-extractInitExpression (AST.CComplexImag x a      ) = undefined
-extractInitExpression (AST.CIndex x y  a         ) = undefined
-extractInitExpression (AST.CCall  x ys a         ) = undefined
-extractInitExpression (AST.CMember x ident bool a) = undefined
-extractInitExpression (AST.CVar ident a          ) = do
+extractExpression (AST.CCast  x y a          ) = undefined
+extractExpression (AST.CUnary x y a          ) = undefined
+extractExpression (AST.CSizeofExpr  x a      ) = undefined
+extractExpression (AST.CSizeofType  x a      ) = undefined
+extractExpression (AST.CAlignofExpr x a      ) = undefined
+extractExpression (AST.CAlignofType x a      ) = undefined
+extractExpression (AST.CComplexReal x a      ) = undefined
+extractExpression (AST.CComplexImag x a      ) = undefined
+extractExpression (AST.CIndex x y  a         ) = undefined
+extractExpression (AST.CCall  x ys a         ) = undefined
+extractExpression (AST.CMember x ident bool a) = undefined
+extractExpression (AST.CVar ident a          ) = do
     n <- extractVarNameDeclrSpec ident
     return EAST.Identifire { EAST.name = n }
-extractInitExpression (AST.CConst x                ) = extractConstant x
-extractInitExpression (AST.CCompoundLit      x y  a) = undefined
-extractInitExpression (AST.CGenericSelection x ys a) = undefined
-extractInitExpression (AST.CStatExpr    x     a    ) = undefined
-extractInitExpression (AST.CLabAddrExpr ident a    ) = undefined
-extractInitExpression (AST.CBuiltinExpr x          ) = undefined
+extractExpression (AST.CConst x                ) = extractConstant x
+extractExpression (AST.CCompoundLit      x y  a) = undefined
+extractExpression (AST.CGenericSelection x ys a) = undefined
+extractExpression (AST.CStatExpr    x     a    ) = undefined
+extractExpression (AST.CLabAddrExpr ident a    ) = undefined
+extractExpression (AST.CBuiltinExpr x          ) = undefined
 
 -- | extractAssignOp
 --
@@ -433,8 +433,8 @@ newInfixExpression
     -> (AST.CExpression Node.NodeInfo)
     -> EkiParser EAST.Expression
 newInfixExpression left op right = do
-    l <- extractInitExpression left
-    r <- extractInitExpression right
+    l <- extractExpression left
+    r <- extractExpression right
     return EAST.InfixExpression { EAST.left     = l
                                 , EAST.operator = op
                                 , EAST.right    = r
