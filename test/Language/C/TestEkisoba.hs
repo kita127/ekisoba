@@ -191,6 +191,8 @@ unsigned int if_gethan_0(int arg) {
 
   if (arg >= 0) {
     res = 1;
+  } else {
+    res = 0;
   }
 
   return res;
@@ -202,6 +204,10 @@ unsigned int if_gethan_0(int arg) {
     if(arg >= 0)
     {
         res = 1;
+    }
+    else
+    {
+        res = 0;
     }
     return res;
 }|]

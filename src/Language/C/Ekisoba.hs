@@ -154,8 +154,16 @@ extractBlockStatement (AST.CIf condition consequence Nothing a) = do
                            , EAST.alternative = Nothing
                            }
         ]
-extractBlockStatement (AST.CIf condition consequence (Just alternative) a) =
-    failParse "unimplemented extractBlockStatement 7"
+extractBlockStatement (AST.CIf condition consequence (Just alternative) a) = do
+    cond <- extractInitExpression condition
+    cons <- extractBody consequence
+    alt  <- extractBody alternative
+    return
+        [ EAST.IfStatement { EAST.condition   = cond
+                           , EAST.consequence = cons
+                           , EAST.alternative = Just alt
+                           }
+        ]
 extractBlockStatement (AST.CSwitch x y a) =
     failParse "unimplemented extractBlockStatement 8"
 extractBlockStatement (AST.CWhile x y bool a) =

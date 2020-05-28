@@ -113,8 +113,12 @@ instance Stringble Statement where
             <> ")\n"
             <> string depth cons
             <> case alt of
-                   Nothing   -> ""
-                   Just alt' -> string (depth + nestLevel) alt'
+                   Nothing -> ""
+                   Just alt' ->
+                       "\n"
+                           <> nestText depth "else"
+                           <> "\n"
+                           <> string depth alt'
     string depth b@BlockStatement { statements = ss } =
         nestText depth
             $  "{\n"

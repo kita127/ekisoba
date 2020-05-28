@@ -60,6 +60,8 @@ unsigned int if_gethan_0(int arg) {
 
   if (arg >= 0) {
     res = TRUE;
+  } else {
+    res = FALSE;
   }
 
   return res;
