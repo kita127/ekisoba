@@ -1,5 +1,3 @@
-{-# LANGUAGE DuplicateRecordFields #-}
-{-# LANGUAGE OverloadedStrings     #-}
 module Language.C.Ekisoba
     ( parseCFile
     , Preprocessor(..)

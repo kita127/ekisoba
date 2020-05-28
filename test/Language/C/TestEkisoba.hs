@@ -1,5 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE QuasiQuotes       #-}
 import qualified Data.Aeson                    as Aes
 import qualified Data.Aeson.Encode.Pretty      as AesP
 import qualified Data.Aeson.TH                 as TH

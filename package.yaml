@@ -30,6 +30,10 @@ library:
   - aeson
   - extra
   - text
+  default-extensions:
+  - DuplicateRecordFields
+  - OverloadedStrings
+  - TemplateHaskell
 
 executables:
   ekisoba-exe:
@@ -64,3 +68,7 @@ tests:
     - language-c
     - aeson
     - aeson-pretty
+    default-extensions:
+    - OverloadedStrings
+    - QuasiQuotes
+
