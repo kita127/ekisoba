@@ -147,7 +147,16 @@ extractBlockStatement (AST.CExpr (Just x) a) = do
     return [EAST.ExpressionStatement { EAST.exp = e }]
 extractBlockStatement (AST.CCompound idents xs a) =
     failParse "unimplemented extractBlockStatement 6"
-extractBlockStatement (AST.CIf x y z a) =
+extractBlockStatement (AST.CIf condition consequence Nothing a) = do
+    cond <- extractInitExpression condition
+    cons <- extractBody consequence
+    return
+        [ EAST.IfStatement { EAST.condition   = cond
+                           , EAST.consequence = cons
+                           , EAST.alternative = Nothing
+                           }
+        ]
+extractBlockStatement (AST.CIf condition consequence (Just alternative) a) =
     failParse "unimplemented extractBlockStatement 7"
 extractBlockStatement (AST.CSwitch x y a) =
     failParse "unimplemented extractBlockStatement 8"
@@ -169,7 +178,6 @@ extractBlockStatement (AST.CReturn (Just x) a) = do
 extractBlockStatement (AST.CAsm x a) =
     failParse "unimplemented extractBlockStatement 16"
 extractBlockStatement _ = failParse "unimplemented extractBlockStatement 99"
-
 
 
 -- | extractArgs
@@ -389,8 +397,8 @@ extractAssignOp AST.COrAssOp  left right = undefined
 --
 extractBinaryOp
     :: AST.CBinaryOp
-    -> (AST.CExpression Node.NodeInfo)
-    -> (AST.CExpression Node.NodeInfo)
+    -> AST.CExpression Node.NodeInfo
+    -> AST.CExpression Node.NodeInfo
     -> EkiParser EAST.Expression
 extractBinaryOp AST.CMulOp left right = newInfixExpression left "*" right
 extractBinaryOp AST.CDivOp left right = newInfixExpression left "/" right
@@ -402,7 +410,7 @@ extractBinaryOp AST.CShrOp left right = failParse "Shr Op"
 extractBinaryOp AST.CLeOp  left right = failParse "Le Op"
 extractBinaryOp AST.CGrOp  left right = failParse "Gr Op"
 extractBinaryOp AST.CLeqOp left right = failParse "Leq Op"
-extractBinaryOp AST.CGeqOp left right = failParse "Geq Op"
+extractBinaryOp AST.CGeqOp left right = newInfixExpression left ">=" right
 extractBinaryOp AST.CEqOp  left right = failParse "Eq Op"
 extractBinaryOp AST.CNeqOp left right = failParse "Neq Op"
 extractBinaryOp AST.CAndOp left right = failParse "And Op"

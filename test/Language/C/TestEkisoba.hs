@@ -29,7 +29,7 @@ main = do
 helper (comment, path, input, expected) =
     comment
         ~:  ( (\r -> case r of
-                  Right r' -> string r'
+                  Right r' -> string 0 r'
                   Left  l  -> error $ Eki.message l
               )
             . Eki.translate
@@ -38,9 +38,18 @@ helper (comment, path, input, expected) =
                 input
         ~?= expected
 
+cToOriginAst :: FilePath -> IS.InputStream -> AST.CTranslUnit
+cToOriginAst file text = case Pars.parseC text (Pos.initPos file) of
+    Left  _ -> error "parse error"
+    Right r -> r
+
+-- | testSample
+--
 testSample :: Test
 testSample = TestList ["testSample test 1" ~: "hello" ~?= "hello"]
 
+-- | testVariableDefinition
+--
 testVariableDefinition :: Test
 testVariableDefinition = TestList $ map helper testTable
   where
@@ -137,6 +146,8 @@ struct St_tag st_var;|]
           )
         ]
 
+-- | testFunctionDefinition
+--
 testFunctionDefinition :: Test
 testFunctionDefinition = TestList $ map helper testTable
   where
@@ -164,12 +175,41 @@ void func2(int a, char b)
     return res;
 }|]
           )
+        , ( "test function definition 3"
+          , "./hoge.c"
+          , [r|int add(int a, int b){ int res; res = a + b; return res; }|]
+          , [r|int add(int a, int b)
+{
+    int res;
+    res = (a + b);
+    return res;
+}|]
+          )
+        , ( "test function definition 4"
+          , "./hoge.c"
+          , [r|
+unsigned int if_gethan_0(int arg) {
+  int res = 0;
+
+  if (arg >= 0) {
+    res = 1;
+  }
+
+  return res;
+}
+|]
+          , [r|unsigned int if_gethan_0(int arg)
+{
+    int res = 0;
+    if(arg >= 0)
+    {
+        res = 1;
+    }
+    return res;
+}|]
+          )
         ]
 
-cToOriginAst :: FilePath -> IS.InputStream -> AST.CTranslUnit
-cToOriginAst file text = case Pars.parseC text (Pos.initPos file) of
-    Left  _ -> error "parse error"
-    Right r -> r
 
 testExpression :: Test
 testExpression = TestList $ map helper testTable
