@@ -58,10 +58,12 @@ int add(int a, int b) {
 unsigned int if_gethan_0(int arg) {
   int res = FALSE;
 
-  if (arg >= 0) {
-    res = TRUE;
+  if (arg == 0) {
+    res = 0;
+  } else if (arg > 0) {
+    res = 1;
   } else {
-    res = FALSE;
+    res = 2;
   }
 
   return res;

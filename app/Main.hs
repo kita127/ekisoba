@@ -37,7 +37,5 @@ main = do
 
     putStrLn ""
     case ekiRes of
-        Right r -> TIO.putStrLn $ EAST.string 0 r
+        Right r -> TIO.putStrLn $ EAST.string 0 EAST.None r
         Left  r -> error $ Eki.message r
-
-

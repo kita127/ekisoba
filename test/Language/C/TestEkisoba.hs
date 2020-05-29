@@ -27,7 +27,7 @@ main = do
 helper (comment, path, input, expected) =
     comment
         ~:  ( (\r -> case r of
-                  Right r' -> string 0 r'
+                  Right r' -> string 0 None r'
                   Left  l  -> error $ Eki.message l
               )
             . Eki.translate
@@ -187,27 +187,36 @@ void func2(int a, char b)
           , "./hoge.c"
           , [r|
 unsigned int if_gethan_0(int arg) {
-  int res = 0;
+    int res;
 
-  if (arg >= 0) {
-    res = 1;
-  } else {
-    res = 0;
-  }
-
-  return res;
-}
-|]
-          , [r|unsigned int if_gethan_0(int arg)
-{
-    int res = 0;
-    if(arg >= 0)
+    if(arg == 0) {
+        res = 0;
+    }
+    else if(arg > 0)
     {
         res = 1;
     }
     else
     {
+        res = 2;
+    }
+    return res;
+}
+|]
+          , [r|unsigned int if_gethan_0(int arg)
+{
+    int res;
+    if(arg == 0)
+    {
         res = 0;
+    }
+    else if(arg > 0)
+    {
+        res = 1;
+    }
+    else
+    {
+        res = 2;
     }
     return res;
 }|]

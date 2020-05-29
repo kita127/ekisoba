@@ -372,10 +372,10 @@ extractBinaryOp AST.CSubOp left right = newInfixExpression left "-" right
 extractBinaryOp AST.CShlOp left right = failParse "Shl Op"
 extractBinaryOp AST.CShrOp left right = failParse "Shr Op"
 extractBinaryOp AST.CLeOp  left right = failParse "Le Op"
-extractBinaryOp AST.CGrOp  left right = failParse "Gr Op"
+extractBinaryOp AST.CGrOp  left right = newInfixExpression left ">" right
 extractBinaryOp AST.CLeqOp left right = failParse "Leq Op"
 extractBinaryOp AST.CGeqOp left right = newInfixExpression left ">=" right
-extractBinaryOp AST.CEqOp  left right = failParse "Eq Op"
+extractBinaryOp AST.CEqOp  left right = newInfixExpression left "==" right
 extractBinaryOp AST.CNeqOp left right = failParse "Neq Op"
 extractBinaryOp AST.CAndOp left right = failParse "And Op"
 extractBinaryOp AST.CXorOp left right = failParse "Xor Op"

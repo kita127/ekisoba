@@ -3,6 +3,7 @@ module Language.C.Ekisoba.AST
     , Program(..)
     , Statement(..)
     , Expression(..)
+    , Instruction(..)
     , string
     )
 where
@@ -12,7 +13,10 @@ import qualified Data.Aeson.TH                 as TH
 import qualified Data.Text                     as T
 
 class Stringble a where
-    string :: Int -> a -> T.Text
+    string :: Int -> Instruction -> a -> T.Text
+
+data Instruction = None | ElseIf
+    deriving (Eq, Show)
 
 data Object = Object {
                  name    :: T.Text
@@ -20,13 +24,14 @@ data Object = Object {
               } deriving (Eq, Show)
 
 instance Stringble Object where
-    string depth Object { name = n, program = p } = string depth p
+    string depth _ Object { name = n, program = p } = string depth None p
 
 
 newtype Program = Program {statements :: [Statement]} deriving (Eq, Show)
 
 instance Stringble Program where
-    string depth (Program ss) = T.intercalate "\n" $ map (string depth) ss
+    string depth _ (Program ss) =
+        T.intercalate "\n" $ map (string depth None) ss
 
 
 data Statement = VariableDefinition {
@@ -66,7 +71,7 @@ data Statement = VariableDefinition {
                 | IfStatement {
                     condition   :: Expression
                   , consequence :: Statement          -- BlockStatement
-                  , alternative :: Maybe Statement    -- BlockStatement
+                  , alternative :: Maybe Statement    -- BlockStatement or IfStatement
                   }
                | ASTStmtInfo {                 -- 内部制御用の特に意味のない文
                   info :: T.Text
@@ -74,55 +79,56 @@ data Statement = VariableDefinition {
                deriving (Eq, Show)
 
 instance Stringble Statement where
-    string depth var@VariableDefinition{} =
+    string depth _ var@VariableDefinition{} =
         nestText depth $ variableToStr depth var <> ";"
-    string depth FunctionDefinition { name = n, retType = ts, args = ag, body = b }
-        = T.intercalate " " (map (string depth) ts)
+    string depth _ FunctionDefinition { name = n, retType = ts, args = ag, body = b }
+        = T.intercalate " " (map (string depth None) ts)
             <> " "
             <> n
             <> "("
-            <> string depth ag
+            <> string depth None ag
             <> ")\n"
-            <> string depth b
-    string depth Argument { vars = vs } =
-        if map (map (string depth) . typ) vs == [["void"]]
+            <> string depth None b
+    string depth _ Argument { vars = vs } =
+        if map (map (string depth None) . typ) vs == [["void"]]
             then "void"
             else T.intercalate ", " (map (variableToStr depth) vs)
-    string depth Type { name = n } = n
-    string depth StructDeclaration { name = n, menbers = ms } =
+    string depth _ Type { name = n } = n
+    string depth _ StructDeclaration { name = n, menbers = ms } =
         nestText depth "struct "
             <> n
             <> " {\n"
-            <> T.intercalate "\n" (map (string (depth + nestLevel)) ms)
+            <> T.intercalate "\n" (map (string (depth + nestLevel) None) ms)
             <> nestText depth "\n};"
-    string depth TypdefDeclaration { name = n, typ = ts } =
+    string depth _ TypdefDeclaration { name = n, typ = ts } =
         "typedef "
-            <> T.intercalate " " (map (string depth) ts)
+            <> T.intercalate " " (map (string depth None) ts)
             <> " "
             <> n
             <> ";"
-    string depth ReturnStatement { value = v } = case v of
-        Just v' -> nestText depth $ "return " <> string depth v' <> ";"
+    string depth _ ReturnStatement { value = v } = case v of
+        Just v' -> nestText depth $ "return " <> string depth None v' <> ";"
         Nothing -> nestText depth "return;"
-    string depth ExpressionStatement { exp = e } =
-        nestText depth $ string depth e <> ";"
-    string depth IfStatement { condition = cod, consequence = cons, alternative = alt }
+    string depth _ ExpressionStatement { exp = e } =
+        nestText depth $ string depth None e <> ";"
+    string depth inst IfStatement { condition = cod, consequence = cons, alternative = alt }
         = nestText depth
-            $  "if("
-            <> string depth cod
+            $  (if inst == ElseIf then "else if(" else "if(")
+            <> string depth None cod
             <> ")\n"
-            <> string depth cons
+            <> string depth None cons
             <> case alt of
-                   Nothing -> ""
-                   Just alt' ->
+                   Nothing                 -> ""
+                   Just alt'@IfStatement{} -> "\n" <> string depth ElseIf alt'
+                   Just alt'@BlockStatement{} ->
                        "\n"
                            <> nestText depth "else"
                            <> "\n"
-                           <> string depth alt'
-    string depth b@BlockStatement { statements = ss } =
+                           <> string depth None alt'
+    string depth _ b@BlockStatement { statements = ss } =
         nestText depth
             $  "{\n"
-            <> T.intercalate "\n" (map (string (depth + nestLevel)) ss)
+            <> T.intercalate "\n" (map (string (depth + nestLevel) None) ss)
             <> "\n"
             <> nestText depth "}"
 
@@ -143,10 +149,10 @@ data Expression = Identifire {
                 deriving (Eq, Show)
 
 instance Stringble Expression where
-    string depth Identifire { name = n }       = n
-    string depth IntegerLiteral { intVal = v } = T.pack . show $ v
-    string depth CharLiteral { charVal = c }   = "'" <> T.singleton c <> "'"
-    string depth InfixExpression { left = l, operator = op, right = r } =
+    string depth _ Identifire { name = n }       = n
+    string depth _ IntegerLiteral { intVal = v } = T.pack . show $ v
+    string depth _ CharLiteral { charVal = c }   = "'" <> T.singleton c <> "'"
+    string depth _ InfixExpression { left = l, operator = op, right = r } =
         stringInParenthese depth l
             <> " "
             <> op
@@ -164,18 +170,21 @@ stringInParenthese depth InfixExpression { left = l, operator = op, right = r }
         <> " "
         <> stringInParenthese depth r
         <> ")"
-stringInParenthese depth x = string depth x
+stringInParenthese depth x = string depth None x
 
 nestText :: Int -> T.Text -> T.Text
 nestText depth s = T.pack (replicate depth ' ') <> s
 
 valueToStr :: Int -> Maybe Expression -> T.Text
-valueToStr depth (Just v) = " = " <> string depth v
+valueToStr depth (Just v) = " = " <> string depth None v
 valueToStr depth Nothing  = ""
 
 variableToStr :: Int -> Statement -> T.Text
 variableToStr depth VariableDefinition { name = n, typ = ts, value = v } =
-    T.intercalate " " (map (string depth) ts) <> " " <> n <> valueToStr depth v
+    T.intercalate " " (map (string depth None) ts)
+        <> " "
+        <> n
+        <> valueToStr depth v
 
 nestLevel :: Int
 nestLevel = 4
