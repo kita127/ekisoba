@@ -79,6 +79,10 @@ data Statement = VariableDefinition {
                | DefaultStatement {
                    statements :: [Statement]
                  }
+               | CaseStatement {
+                   caseVal :: Expression
+                 , statements :: [Statement]
+                 }
                | Break {
                  }
                | ASTStmtInfo {                 -- 内部制御用の特に意味のない文
@@ -146,17 +150,36 @@ instance Stringble Statement where
             <> ")"
             <> "\n"
             <> case b of
-                   b@BlockStatement { statements = (s : ss) } ->
+                   b@BlockStatement { statements = ss } ->
                        nestText depth "{\n"
                            -- 先頭要素は case 文となり一つの文を持っている
                            -- 他の分は何故か Block に紐づく
-                           <> string depth None s
-                           <> stringStatements (depth + nestLevel * 2) ss
-                           <> "\n"
+                           <> ( T.concat
+                              . map
+                                    (\s -> case s of
+                                        d@DefaultStatement{} ->
+                                            string depth None d
+                                        c@CaseStatement{} ->
+                                            string depth None c
+                                        x ->
+                                            string (depth + nestLevel * 2)
+                                                   None
+                                                   x
+                                                <> "\n"
+                                    )
+                              $ ss
+                              )
                            <> nestText depth "}"
                    _ -> "string Switch Statement ERROR"
     string depth _ DefaultStatement { statements = ss } =
         nestText (depth + nestLevel) "default:"
+            <> "\n"
+            <> stringStatements (depth + nestLevel * 2) ss
+            <> "\n"
+    string depth _ CaseStatement { caseVal = cv, statements = ss } =
+        nestText (depth + nestLevel) "case "
+            <> string depth None cv
+            <> ":"
             <> "\n"
             <> stringStatements (depth + nestLevel * 2) ss
             <> "\n"

@@ -236,6 +236,9 @@ unsigned int if_gethan_0(int arg) {
 {
     switch(arg)
     {
+        case 0:
+            111;
+            break;
         default:
             999;
             break;
@@ -245,6 +248,9 @@ unsigned int if_gethan_0(int arg) {
 {
     switch(arg)
     {
+        case 0:
+            111;
+            break;
         default:
             999;
             break;

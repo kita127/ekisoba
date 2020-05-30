@@ -111,13 +111,14 @@ extractCompBlockItem (AST.CNestedFunDef x) =
 extractStatement :: AST.CStatement Node.NodeInfo -> EkiParser EAST.Statement
 extractStatement (AST.CLabel ident x ys a) =
     failParse "unimplemented extractStatement 1"
-extractStatement (AST.CCase x y a) =
-    failParse "unimplemented extractStatement 2"
+extractStatement (AST.CCase value statement a) =
+    EAST.CaseStatement
+        <$> extractExpression value
+        <*> ((: []) <$> extractStatement statement)
 extractStatement (AST.CCases x y z a) =
     failParse "unimplemented extractStatement 3"
 extractStatement (AST.CDefault statement a) =
-    EAST.DefaultStatement
-        <$> ((: []) <$> extractStatement statement)
+    EAST.DefaultStatement <$> ((: []) <$> extractStatement statement)
 extractStatement (AST.CExpr (Just x) a) =
     EAST.ExpressionStatement <$> extractExpression x
 extractStatement (AST.CCompound idents xs a) =
