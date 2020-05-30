@@ -30,8 +30,7 @@ instance Stringble Object where
 newtype Program = Program {statements :: [Statement]} deriving (Eq, Show)
 
 instance Stringble Program where
-    string depth _ (Program ss) =
-        T.intercalate "\n" $ map (string depth None) ss
+    string depth _ (Program ss) = stringStatements depth ss
 
 
 data Statement = VariableDefinition {
@@ -149,9 +148,7 @@ instance Stringble Statement where
             <> "\n"
             <> string depth None cs
     string depth _ CaseStetement { value = v, statements = ss } =
-        nestText depth "default:" <> "\n" <> T.intercalate
-            "\n"
-            (map (string (depth + 4) None) ss)
+        nestText depth "default:" <> "\n" <> stringStatements (depth + 4) ss
     string depth _ Break = nestText depth "break;"
 
 data Expression = Identifire {
@@ -180,6 +177,11 @@ instance Stringble Expression where
             <> op
             <> " "
             <> stringInParenthese depth r
+
+-- | stringStatements
+--
+stringStatements :: Int -> [Statement] -> T.Text
+stringStatements depth ss = T.intercalate "\n" (map (string depth None) ss)
 
 -- | stringInParenthese
 --
