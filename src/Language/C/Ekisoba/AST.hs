@@ -146,9 +146,19 @@ instance Stringble Statement where
             <> string depth None con
             <> ")"
             <> "\n"
-            <> string depth None cs
+            <> case cs of
+                   b@BlockStatement { statements = (s : ss) } ->
+                       nestText depth "{\n"
+                           <> string depth None s
+                           <> stringStatements (depth + nestLevel * 2) ss
+                           <> "\n"
+                           <> nestText depth "}"
+                   _ -> "string Switch Statement ERROR"
     string depth _ CaseStetement { value = v, statements = ss } =
-        nestText depth "default:" <> "\n" <> stringStatements (depth + 4) ss
+        nestText (depth + nestLevel) "default:"
+            <> "\n"
+            <> stringStatements (depth + nestLevel * 2) ss
+            <> "\n"
     string depth _ Break = nestText depth "break;"
 
 data Expression = Identifire {
