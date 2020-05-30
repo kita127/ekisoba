@@ -74,11 +74,10 @@ data Statement = VariableDefinition {
                  }
                | SwitchStatement {
                    condition   :: Expression
-                 , cases :: Statement                -- BlockStatement
+                 , block :: Statement                -- BlockStatement
                  }
-               | CaseStetement {
-                   value   :: Maybe Expression
-                 , statements :: [Statement]
+               | DefaultStatement {
+                   statements :: [Statement]
                  }
                | Break {
                  }
@@ -140,21 +139,23 @@ instance Stringble Statement where
             <> T.intercalate "\n" (map (string (depth + nestLevel) None) ss)
             <> "\n"
             <> nestText depth "}"
-    string depth _ SwitchStatement { condition = con, cases = cs } =
+    string depth _ SwitchStatement { condition = con, block = b } =
         nestText depth
             $  "switch("
             <> string depth None con
             <> ")"
             <> "\n"
-            <> case cs of
+            <> case b of
                    b@BlockStatement { statements = (s : ss) } ->
                        nestText depth "{\n"
+                           -- 先頭要素は case 文となり一つの文を持っている
+                           -- 他の分は何故か Block に紐づく
                            <> string depth None s
                            <> stringStatements (depth + nestLevel * 2) ss
                            <> "\n"
                            <> nestText depth "}"
                    _ -> "string Switch Statement ERROR"
-    string depth _ CaseStetement { value = v, statements = ss } =
+    string depth _ DefaultStatement { statements = ss } =
         nestText (depth + nestLevel) "default:"
             <> "\n"
             <> stringStatements (depth + nestLevel * 2) ss

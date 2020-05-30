@@ -116,9 +116,8 @@ extractStatement (AST.CCase x y a) =
 extractStatement (AST.CCases x y z a) =
     failParse "unimplemented extractStatement 3"
 extractStatement (AST.CDefault statement a) =
-    EAST.CaseStetement
-        <$> pure Nothing
-        <*> ((: []) <$> extractStatement statement)
+    EAST.DefaultStatement
+        <$> ((: []) <$> extractStatement statement)
 extractStatement (AST.CExpr (Just x) a) =
     EAST.ExpressionStatement <$> extractExpression x
 extractStatement (AST.CCompound idents xs a) =
