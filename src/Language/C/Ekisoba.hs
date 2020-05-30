@@ -114,11 +114,11 @@ extractStatement (AST.CLabel ident x ys a) =
 extractStatement (AST.CCase value statement a) =
     EAST.CaseStatement
         <$> extractExpression value
-        <*> ((: []) <$> extractStatement statement)
+        <*> extractStatement statement
 extractStatement (AST.CCases x y z a) =
     failParse "unimplemented extractStatement 3"
 extractStatement (AST.CDefault statement a) =
-    EAST.DefaultStatement <$> ((: []) <$> extractStatement statement)
+    EAST.DefaultStatement <$> extractStatement statement
 extractStatement (AST.CExpr (Just x) a) =
     EAST.ExpressionStatement <$> extractExpression x
 extractStatement (AST.CCompound idents xs a) =

@@ -77,11 +77,11 @@ data Statement = VariableDefinition {
                  , block :: Statement                -- BlockStatement
                  }
                | DefaultStatement {
-                   statements :: [Statement]
+                   statement :: Statement
                  }
                | CaseStatement {
                    caseVal :: Expression
-                 , statements :: [Statement]
+                 , statement :: Statement
                  }
                | Break {
                  }
@@ -171,17 +171,17 @@ instance Stringble Statement where
                               )
                            <> nestText depth "}"
                    _ -> "string Switch Statement ERROR"
-    string depth _ DefaultStatement { statements = ss } =
+    string depth _ DefaultStatement { statement = s } =
         nestText (depth + nestLevel) "default:"
             <> "\n"
-            <> stringStatements (depth + nestLevel * 2) ss
+            <> string (depth + nestLevel * 2) None s
             <> "\n"
-    string depth _ CaseStatement { caseVal = cv, statements = ss } =
+    string depth _ CaseStatement { caseVal = cv, statement = s } =
         nestText (depth + nestLevel) "case "
             <> string depth None cv
             <> ":"
             <> "\n"
-            <> stringStatements (depth + nestLevel * 2) ss
+            <> string (depth + nestLevel * 2) None s
             <> "\n"
     string depth _ Break = nestText depth "break;"
 
