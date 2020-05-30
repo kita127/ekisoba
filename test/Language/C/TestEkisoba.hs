@@ -19,6 +19,7 @@ main = do
         [ testSample
         , testVariableDefinition
         , testFunctionDefinition
+        , testStatement
         , testExpression
         , testTypedef
         ]
@@ -183,7 +184,15 @@ void func2(int a, char b)
     return res;
 }|]
           )
-        , ( "test function definition 4"
+        ]
+
+-- | testStatement
+--
+testStatement :: Test
+testStatement = TestList $ map helper testTable
+  where
+    testTable =
+        [ ( "test function definition if, else if, else"
           , "./hoge.c"
           , [r|
 unsigned int if_gethan_0(int arg) {
@@ -222,7 +231,6 @@ unsigned int if_gethan_0(int arg) {
 }|]
           )
         ]
-
 
 testExpression :: Test
 testExpression = TestList $ map helper testTable
