@@ -192,7 +192,7 @@ testStatement :: Test
 testStatement = TestList $ map helper testTable
   where
     testTable =
-        [ ( "test function definition if, else if, else"
+        [ ( "test statemet if, else if, else"
           , "./hoge.c"
           , [r|
 unsigned int if_gethan_0(int arg) {
@@ -228,6 +228,25 @@ unsigned int if_gethan_0(int arg) {
         res = 2;
     }
     return res;
+}|]
+          )
+        , ( "test statement switch"
+          , "./hoge.c"
+          , [r|void func_switch(int arg)
+{
+    switch(arg)
+    {
+        default:
+            break;
+    }
+}|]
+          , [r|void func_switch(int arg)
+{
+    switch(arg)
+    {
+        default:
+            break;
+    }
 }|]
           )
         ]

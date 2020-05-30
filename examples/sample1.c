@@ -55,7 +55,7 @@ int add(int a, int b) {
 
 #define TRUE (1)
 #define FALSE (0)
-unsigned int if_gethan_0(int arg) {
+unsigned int func_if(int arg) {
   int res = FALSE;
 
   if (arg == 0) {
@@ -67,4 +67,15 @@ unsigned int if_gethan_0(int arg) {
   }
 
   return res;
+}
+
+int func_switch(int arg) {
+  switch (arg) {
+  case 0:
+    break;
+  default:
+    break;
+  }
+
+  return 0;
 }

@@ -68,11 +68,21 @@ data Statement = VariableDefinition {
                | ExpressionStatement {
                    exp    :: Expression
                  }
-                | IfStatement {
-                    condition   :: Expression
-                  , consequence :: Statement          -- BlockStatement
-                  , alternative :: Maybe Statement    -- BlockStatement or IfStatement
-                  }
+               | IfStatement {
+                   condition   :: Expression
+                 , consequence :: Statement          -- BlockStatement
+                 , alternative :: Maybe Statement    -- BlockStatement or IfStatement
+                 }
+               | SwitchStatement {
+                   condition   :: Expression
+                 , cases :: Statement                -- BlockStatement
+                 }
+               | CaseStetement {
+                   value   :: Maybe Expression
+                 , statements :: [Statement]
+                 }
+               | Break {
+                 }
                | ASTStmtInfo {                 -- 内部制御用の特に意味のない文
                   info :: T.Text
                  }
@@ -131,6 +141,18 @@ instance Stringble Statement where
             <> T.intercalate "\n" (map (string (depth + nestLevel) None) ss)
             <> "\n"
             <> nestText depth "}"
+    string depth _ SwitchStatement { condition = con, cases = cs } =
+        nestText depth
+            $  "switch("
+            <> string depth None con
+            <> ")"
+            <> "\n"
+            <> string depth None cs
+    string depth _ CaseStetement { value = v, statements = ss } =
+        nestText depth "default:" <> "\n" <> T.intercalate
+            "\n"
+            (map (string (depth + 4) None) ss)
+    string depth _ Break = nestText depth "break;"
 
 data Expression = Identifire {
                     name :: T.Text

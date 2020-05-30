@@ -115,8 +115,10 @@ extractStatement (AST.CCase x y a) =
     failParse "unimplemented extractStatement 2"
 extractStatement (AST.CCases x y z a) =
     failParse "unimplemented extractStatement 3"
-extractStatement (AST.CDefault x a) =
-    failParse "unimplemented extractStatement 4"
+extractStatement (AST.CDefault statement a) =
+    EAST.CaseStetement
+        <$> pure Nothing
+        <*> ((: []) <$> extractStatement statement)
 extractStatement (AST.CExpr (Just x) a) =
     EAST.ExpressionStatement <$> extractExpression x
 extractStatement (AST.CCompound idents xs a) =
@@ -133,8 +135,10 @@ extractStatement (AST.CIf condition consequence (Just alternative) a) =
         <*> extractStatement consequence
         <*> (Just <$> extractStatement alternative)
 
-extractStatement (AST.CSwitch x y a) =
-    failParse "unimplemented extractStatement 8"
+extractStatement (AST.CSwitch condition cases a) =
+    EAST.SwitchStatement
+        <$> extractExpression condition
+        <*> extractStatement cases
 extractStatement (AST.CWhile x y bool a) =
     failParse "unimplemented extractStatement 9"
 extractStatement (AST.CFor x y z q a) =
@@ -144,7 +148,7 @@ extractStatement (AST.CGoto ident a) =
 extractStatement (AST.CGotoPtr x a) =
     failParse "unimplemented extractStatement 12"
 extractStatement (AST.CCont  a) = failParse "unimplemented extractStatement 13"
-extractStatement (AST.CBreak a) = failParse "unimplemented extractStatement 14"
+extractStatement (AST.CBreak a) = pure EAST.Break
 extractStatement (AST.CReturn (Just x) a) =
     EAST.ReturnStatement <$> (Just <$> extractExpression x)
 extractStatement (AST.CAsm x a) = failParse "unimplemented extractStatement 16"
