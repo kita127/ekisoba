@@ -1,6 +1,4 @@
-int func_switch(int arg) {
-  while (1) {
-    100;
-  }
+int func(int arg) {
+  int local_v = 0;
   return 0;
 }

@@ -176,10 +176,15 @@ void func2(int a, char b)
           )
         , ( "test function definition 3"
           , "./hoge.c"
-          , [r|int add(int a, int b){ int res; res = a + b; return res; }|]
           , [r|int add(int a, int b)
 {
-    int res;
+    int res = 0;
+    res = (a + b);
+    return res;
+}|]
+          , [r|int add(int a, int b)
+{
+    int res = 0;
     res = (a + b);
     return res;
 }|]
