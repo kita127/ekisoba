@@ -88,6 +88,10 @@ data Statement = VariableDefinition {
                    condition :: Expression
                  , statement :: Statement
                  }
+               | DoWhileStatement {
+                   condition :: Expression
+                 , statement :: Statement
+                 }
                | Break {
                  }
                | ASTStmtInfo {                 -- 内部制御用の特に意味のない文
@@ -192,9 +196,14 @@ instance Stringble Statement where
     string depth _ WhileStatement { condition = cod, statement = stm } =
         nestText depth "while("
             <> string depth None cod
-            <> ")"
-            <> "\n"
+            <> ")\n"
             <> string depth None stm
+    string depth _ DoWhileStatement { condition = cod, statement = stm } =
+        nestText depth "do\n"
+            <> string depth None stm
+            <> "while("
+            <> string depth None cod
+            <> ");"
 
 data Expression = Identifire {
                     name :: T.Text

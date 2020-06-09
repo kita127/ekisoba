@@ -139,8 +139,12 @@ extractStatement (AST.CSwitch condition cases a) =
     EAST.SwitchStatement
         <$> extractExpression condition
         <*> extractStatement cases
-extractStatement (AST.CWhile condition stm bool a) =
+extractStatement (AST.CWhile condition stm False a) =
     EAST.WhileStatement <$> extractExpression condition <*> extractStatement stm
+extractStatement (AST.CWhile condition stm True a) =
+    EAST.DoWhileStatement
+        <$> extractExpression condition
+        <*> extractStatement stm
 extractStatement (AST.CFor x y z q a) =
     failParse "unimplemented extractStatement 10"
 extractStatement (AST.CGoto ident a) =

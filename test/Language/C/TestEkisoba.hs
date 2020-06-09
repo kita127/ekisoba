@@ -272,8 +272,8 @@ unsigned int if_gethan_0(int arg) {
           , "./hoge.c"
           , [r|void func_switch(int arg)
 {
-
-    while(1)
+    int res = 1;
+    while(res)
     {
         100;
         200;
@@ -282,12 +282,36 @@ unsigned int if_gethan_0(int arg) {
 }|]
           , [r|void func_switch(int arg)
 {
-    while(1)
+    int res = 1;
+    while(res)
     {
         100;
         200;
         300;
     }
+}|]
+          )
+        , ( "test statement do while"
+          , "./hoge.c"
+          , [r|void func_switch(int arg)
+{
+    int res = 1;
+    do
+    {
+        100;
+        200;
+        300;
+    }while(res);
+}|]
+          , [r|void func_switch(int arg)
+{
+    int res = 1;
+    do
+    {
+        100;
+        200;
+        300;
+    }while(res);
 }|]
           )
         ]
