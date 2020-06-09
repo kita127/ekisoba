@@ -13,6 +13,7 @@ import qualified Data.Aeson.TH                 as TH
 import qualified Data.Text                     as T
 
 class Stringble a where
+ -- string :: depth -> instruction -> a -> T.Text
     string :: Int -> Instruction -> a -> T.Text
 
 data Instruction = None | ElseIf
