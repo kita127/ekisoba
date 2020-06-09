@@ -239,6 +239,9 @@ unsigned int if_gethan_0(int arg) {
         case 0:
             111;
             break;
+        case 1:
+            222;
+            break;
         default:
             999;
             break;
@@ -251,9 +254,34 @@ unsigned int if_gethan_0(int arg) {
         case 0:
             111;
             break;
+        case 1:
+            222;
+            break;
         default:
             999;
             break;
+    }
+}|]
+          )
+        , ( "test statement while"
+          , "./hoge.c"
+          , [r|void func_switch(int arg)
+{
+
+    while(1)
+    {
+        100;
+        200;
+        300;
+    }
+}|]
+          , [r|void func_switch(int arg)
+{
+    while(1)
+    {
+        100;
+        200;
+        300;
     }
 }|]
           )

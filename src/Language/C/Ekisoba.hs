@@ -139,8 +139,8 @@ extractStatement (AST.CSwitch condition cases a) =
     EAST.SwitchStatement
         <$> extractExpression condition
         <*> extractStatement cases
-extractStatement (AST.CWhile x y bool a) =
-    failParse "unimplemented extractStatement 9"
+extractStatement (AST.CWhile condition stm bool a) =
+    EAST.WhileStatement <$> extractExpression condition <*> extractStatement stm
 extractStatement (AST.CFor x y z q a) =
     failParse "unimplemented extractStatement 10"
 extractStatement (AST.CGoto ident a) =

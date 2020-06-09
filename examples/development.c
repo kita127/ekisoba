@@ -1,12 +1,6 @@
 int func_switch(int arg) {
-  switch (arg) {
-  case 0:
-    111;
-    break;
-  default:
-    999;
-    break;
+  while (1) {
+    100;
   }
-
   return 0;
 }
