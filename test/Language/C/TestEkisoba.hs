@@ -314,6 +314,11 @@ unsigned int if_gethan_0(int arg) {
     }while(res);
 }|]
           )
+        , ( "test statement extern"
+          , "./hoge.c"
+          , [r|extern int somewhere;|]
+          , [r|extern int somewhere;|]
+          )
         ]
 
 testExpression :: Test

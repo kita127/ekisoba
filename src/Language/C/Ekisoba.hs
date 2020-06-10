@@ -480,8 +480,7 @@ extractStorageSpecifier (AST.CAuto a) =
 extractStorageSpecifier (AST.CRegister a) =
     failParse "error extractStorageSpecifier match CRegister"
 extractStorageSpecifier (AST.CStatic a) = return $ newType "static"
-extractStorageSpecifier (AST.CExtern a) =
-    failParse "error extractStorageSpecifier match CExtern"
+extractStorageSpecifier (AST.CExtern a) = return $ newType "extern"
 extractStorageSpecifier (AST.CTypedef a) =
     return $ EAST.ASTStmtInfo "typdef qualifier"
 extractStorageSpecifier (AST.CThread a) =
