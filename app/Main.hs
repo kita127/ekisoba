@@ -18,12 +18,12 @@ main = do
     cRes <- C.parseCFile (GCC.newGCC "gcc")
                          Nothing
                          ["-I/usr/include/gtk-2.0"]
-                         (args !! 0)
+                         (head args)
     putStrLn ""
     print cRes
     putStrLn ""
 
-    ekiRes <- Eki.parseCFile Eki.GCC ["-I/usr/include/gtk-2.0"] (args !! 0)
+    ekiRes <- Eki.parseCFile Eki.GCC ["-I/usr/include/gtk-2.0"] (head args)
 
     putStrLn ""
     case ekiRes of

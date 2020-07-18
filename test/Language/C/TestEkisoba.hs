@@ -1,3 +1,6 @@
+{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE QuasiQuotes #-}
 import qualified Data.Aeson                    as Aes
 import qualified Data.Aeson.Encode.Pretty      as AesP
 import qualified Data.Aeson.TH                 as TH
@@ -27,7 +30,7 @@ main = do
 
 helper (comment, path, input, expected) =
     comment
-        ~:  ( (\r -> case r of
+        ~:  ( (\case
                   Right r' -> string 0 None r'
                   Left  l  -> error $ Eki.message l
               )

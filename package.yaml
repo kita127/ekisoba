@@ -50,6 +50,8 @@ executables:
     - aeson-pretty
     - bytestring
     - text
+    default-extensions:
+    - LambdaCase
 
 tests:
   ekisoba-test:
@@ -71,4 +73,5 @@ tests:
     default-extensions:
     - OverloadedStrings
     - QuasiQuotes
+    - LambdaCase
 

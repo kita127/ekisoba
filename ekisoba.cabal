@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: e9b7c7765c5c850266ec4e92c6da1996301655c37a161b192265e4161e8f9756
+-- hash: fcfdcacad108126e567b469ca530630402666645187b5eee0305ec399ed05038
 
 name:           ekisoba
 version:        0.1.0.0
@@ -48,6 +48,7 @@ executable ekisoba-exe
       Paths_ekisoba
   hs-source-dirs:
       app
+  default-extensions: LambdaCase
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       aeson
@@ -66,7 +67,7 @@ test-suite ekisoba-test
       Paths_ekisoba
   hs-source-dirs:
       test/Language/C
-  default-extensions: OverloadedStrings QuasiQuotes
+  default-extensions: OverloadedStrings QuasiQuotes LambdaCase
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       HUnit

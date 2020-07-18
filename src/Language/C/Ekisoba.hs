@@ -169,11 +169,11 @@ extractArgs (AST.CDeclr ident xs y zs a) =
 --
 extractArgsDerivedDec
     :: [AST.CDerivedDeclarator Node.NodeInfo] -> EkiParser [EAST.Statement]
-extractArgsDerivedDec ((AST.CPtrDeclr xs a) : _) =
+extractArgsDerivedDec (AST.CPtrDeclr xs a : _) =
     failParse "unimplemented extractArgsDerivedDec 1"
-extractArgsDerivedDec ((AST.CArrDeclr xs y a) : _) =
+extractArgsDerivedDec (AST.CArrDeclr xs y a : _) =
     failParse "unimplemented extractArgsDerivedDec 2"
-extractArgsDerivedDec ((AST.CFunDeclr (Right (xs, bool)) ys a) : _) =
+extractArgsDerivedDec (AST.CFunDeclr (Right (xs, bool)) ys a : _) =
     Ext.concatMapM extractDeclaration xs
 extractArgsDerivedDec _ = undefined
 
@@ -210,7 +210,7 @@ extractTypedef
          )
        ]
     -> EkiParser [EAST.Statement]
-extractTypedef xs@((AST.CStorageSpec (AST.CTypedef a)) : _) (y : ys) = do
+extractTypedef xs@(AST.CStorageSpec (AST.CTypedef a) : _) (y : ys) = do
     n  <- extractVarName y
     ts <- mapM extractVarType xs
     -- Discarded beginning because no matter

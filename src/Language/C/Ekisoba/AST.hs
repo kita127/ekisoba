@@ -1,3 +1,4 @@
+{-# LANGUAGE LambdaCase #-}
 module Language.C.Ekisoba.AST
     ( Object(..)
     , Program(..)
@@ -165,7 +166,7 @@ instance Stringble Statement where
                            -- 他の分は何故か Block に紐づく
                            <> ( T.concat
                               . map
-                                    (\s -> case s of
+                                    (\case
                                         d@DefaultStatement{} ->
                                             string depth None d
                                         c@CaseStatement{} ->
